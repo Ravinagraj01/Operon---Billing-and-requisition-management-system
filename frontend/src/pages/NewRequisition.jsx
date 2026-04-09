@@ -6,6 +6,7 @@ import RequisitionCard from '../components/requisitions/RequisitionCard'
 import { formatCurrency } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 const NewRequisition = () => {
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ const NewRequisition = () => {
   const navigate = useNavigate()
   const { showToast } = useToast()
   const { user } = useAuth()
+  const { isDarkMode } = useTheme()
 
   const categories = [
     'IT', 'HR', 'Finance', 'Legal', 'Operations', 'Marketing', 'Security', 'Other'
@@ -148,17 +150,17 @@ const NewRequisition = () => {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white mb-2">New Requisition</h1>
-        <p className="text-gray-400">Create a new purchase requisition</p>
+        <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>New Requisition</h1>
+        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Create a new purchase requisition</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
-        <div className="glass-panel p-6">
+        <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Title *
               </label>
               <input
@@ -166,9 +168,11 @@ const NewRequisition = () => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.title ? 'border-red-500' : 'border-gray-700'
-                }`}
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white placeholder-gray-400' 
+                    : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'
+                } ${errors.title ? 'border-red-500' : ''}`}
                 placeholder="Enter requisition title"
                 required
               />
@@ -179,7 +183,7 @@ const NewRequisition = () => {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Description
               </label>
               <textarea
@@ -187,23 +191,29 @@ const NewRequisition = () => {
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700' 
+                    : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'
+                }`}
                 placeholder="Provide detailed description (optional)"
               />
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Category *
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.category ? 'border-red-500' : 'border-gray-700'
-                }`}
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white border border-gray-700' 
+                    : 'bg-white text-gray-900 border border-gray-300'
+                } ${errors.category ? 'border-red-500' : ''}`}
                 required
               >
                 <option value="">Select a category</option>
@@ -218,7 +228,7 @@ const NewRequisition = () => {
 
             {/* Vendor Suggestion */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Vendor Suggestion
               </label>
               <input
@@ -226,14 +236,18 @@ const NewRequisition = () => {
                 name="vendor_suggestion"
                 value={formData.vendor_suggestion}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700' 
+                    : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'
+                }`}
                 placeholder="Enter preferred vendor (optional)"
               />
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Amount (₹) *
               </label>
               <input
@@ -243,9 +257,11 @@ const NewRequisition = () => {
                 onChange={handleChange}
                 step="0.01"
                 min="1"
-                className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.amount ? 'border-red-500' : 'border-gray-700'
-                }`}
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white placeholder-gray-400' 
+                    : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'
+                } ${errors.amount ? 'border-red-500' : ''}`}
                 placeholder="0.00"
                 required
               />
@@ -256,7 +272,7 @@ const NewRequisition = () => {
 
             {/* Department */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Department *
               </label>
               <input
@@ -264,9 +280,11 @@ const NewRequisition = () => {
                 name="department"
                 value={formData.department}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 bg-gray-800 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-                  errors.department ? 'border-red-500' : 'border-gray-700'
-                } ${user?.role === 'employee' ? 'cursor-not-allowed opacity-75' : ''}`}
+                className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-800 text-white placeholder-gray-400' 
+                    : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'
+                } ${errors.department ? 'border-red-500' : ''} ${user?.role === 'employee' ? 'cursor-not-allowed opacity-75' : ''}`}
                 placeholder="Enter department"
                 required
                 readOnly={user?.role === 'employee'}
@@ -275,7 +293,7 @@ const NewRequisition = () => {
                 <p className="text-red-400 text-sm mt-1">{errors.department}</p>
               )}
               {user?.role === 'employee' && (
-                <p className="text-gray-400 text-xs mt-1">Department is pre-filled from your profile</p>
+                <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Department is pre-filled from your profile</p>
               )}
             </div>
 
@@ -301,13 +319,13 @@ const NewRequisition = () => {
         <div className="space-y-6">
           {/* Live Preview Card */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Live Preview</h3>
+            <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Live Preview</h3>
             <RequisitionCard requisition={previewData} />
           </div>
 
           {/* Priority Score Info */}
-          <div className="glass-panel p-6">
-            <h3 className="text-white font-semibold mb-4">Priority Score</h3>
+          <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+            <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Priority Score</h3>
             <div className="text-center">
               <div className={`text-4xl font-bold mb-2 ${
                 priorityScore >= 7 ? 'text-red-400' :
@@ -316,13 +334,13 @@ const NewRequisition = () => {
               }`}>
                 {priorityScore}/10
               </div>
-              <p className="text-gray-400 text-sm">
+              <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 {priorityScore >= 7 ? 'High Priority' :
                  priorityScore >= 4 ? 'Medium Priority' :
                  'Low Priority'}
               </p>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-gray-400">
+            <div className={`mt-4 space-y-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <p>• Amount {'>'} ₹1,00,000: +3 points</p>
               <p>• Amount {'>'} ₹50,000: +2 points</p>
               <p>• Amount {'>'} ₹10,000: +1 point</p>
@@ -332,16 +350,16 @@ const NewRequisition = () => {
           </div>
 
           {/* SLA Info */}
-          <div className="glass-panel p-6">
-            <h3 className="text-white font-semibold mb-4">SLA Information</h3>
+          <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+            <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>SLA Information</h3>
             <div className="space-y-2">
-              <p className="text-gray-300 text-sm">
+              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <span className="font-medium">SLA Deadline:</span> 48 hours from submission
               </p>
-              <p className="text-gray-300 text-sm">
+              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 <span className="font-medium">Estimated Deadline:</span> {getSLADeadline()}
               </p>
-              <p className="text-gray-400 text-xs mt-2">
+              <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Once submitted, this requisition will need to be approved within 48 hours to avoid SLA breach.
               </p>
             </div>
