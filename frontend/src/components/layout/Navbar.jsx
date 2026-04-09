@@ -9,7 +9,7 @@ const Navbar = ({ title }) => {
   const { isDarkMode, toggleTheme } = useTheme()
 
   return (
-    <div className={`fixed top-0 left-60 right-0 h-16 flex items-center justify-between px-6 z-10 ${isDarkMode ? 'bg-dark-surface border-b border-gray-800' : 'bg-white border-b border-gray-200'}`}>
+    <div className={`fixed top-0 left-60 right-0 h-16 flex items-center justify-between px-6 z-10 ${isDarkMode ? 'bg-gray-900 border-b border-gray-800' : 'bg-white border-b border-gray-200'}`}>
       {/* Page Title */}
       <div>
         <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{title}</h1>
