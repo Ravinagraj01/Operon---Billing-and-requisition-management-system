@@ -8,12 +8,14 @@ import ErrorMessage from '../components/shared/ErrorMessage'
 import { formatCurrency, formatDateTime, timeAgo, getPriorityColor, isOverSLA, canApprove } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../components/shared/Toast'
 
 const RequisitionDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { isDarkMode } = useTheme()
   const { showToast } = useToast()
   
   const [requisition, setRequisition] = useState(null)
@@ -132,17 +134,11 @@ const RequisitionDetail = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-panel p-6">
-        <div className="flex items-start justify-between mb-4">
+      <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+        <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
-            <div className="flex items-center space-x-4 mb-3">
-              <span className="text-primary font-mono text-lg font-bold">
-                {requisition.req_id}
-              </span>
-              <StatusBadge stage={requisition.stage} />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2">{requisition.title}</h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-400">
+            <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{requisition.title}</h1>
+            <div className={`flex items-center space-x-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <span className="flex items-center space-x-1">
                 <User className="w-4 h-4" />
                 <span>{requisition.creator.full_name}</span>
@@ -153,10 +149,10 @@ const RequisitionDetail = () => {
           </div>
           
           <div className="text-right space-y-2">
-            <div className="text-2xl font-bold text-white">
+            <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {formatCurrency(requisition.amount)}
             </div>
-            <div className={`text-sm font-medium ${getPriorityColor(requisition.priority_score)}`}>
+            <div className={`text-sm font-medium ${getPriorityColor(requisition.priority_score, isDarkMode)}`}>
               Priority: {requisition.priority_score}/10
             </div>
             {requisition.sla_deadline && (
@@ -188,21 +184,21 @@ const RequisitionDetail = () => {
         {/* Description */}
         {requisition.description && (
           <div className="mt-4">
-            <h3 className="text-white font-medium mb-2">Description</h3>
-            <p className="text-gray-300">{requisition.description}</p>
+            <h3 className={`font-medium mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Description</h3>
+            <p className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{requisition.description}</p>
           </div>
         )}
 
         {/* Additional Info */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
-            <span className="text-gray-400">Category:</span>
-            <span className="text-white ml-2">{requisition.category}</span>
+            <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Category:</span>
+            <span className={`ml-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{requisition.category}</span>
           </div>
           {requisition.vendor_suggestion && (
             <div>
-              <span className="text-gray-400">Vendor:</span>
-              <span className="text-white ml-2">{requisition.vendor_suggestion}</span>
+              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Vendor:</span>
+              <span className={`ml-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{requisition.vendor_suggestion}</span>
             </div>
           )}
         </div>
@@ -242,33 +238,37 @@ const RequisitionDetail = () => {
         {/* Left Column - Tabs */}
         <div className="lg:col-span-2 space-y-6">
           {/* Tab Navigation */}
-          <div className="glass-panel p-2">
+          <div className={`p-2 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
             <div className="flex space-x-2">
               <button
                 onClick={() => setActiveTab('timeline')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'timeline'
                     ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : isDarkMode 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
               >
-                Approval Timeline
+                Timeline
               </button>
               <button
                 onClick={() => setActiveTab('comments')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'comments'
                     ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : isDarkMode 
+                      ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
                 }`}
               >
-                Comments ({requisition.comments?.length || 0})
+                Comments
               </button>
             </div>
           </div>
 
           {/* Tab Content */}
-          <div className="glass-panel p-6">
+          <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
             {activeTab === 'timeline' ? (
               <ApprovalTimeline 
                 approvals={requisition.approvals || []} 
@@ -276,42 +276,44 @@ const RequisitionDetail = () => {
               />
             ) : (
               <div className="space-y-4">
-                {/* Comments List */}
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {requisition.comments?.length === 0 ? (
-                    <p className="text-gray-400 text-center py-8">No comments yet</p>
-                  ) : (
-                    requisition.comments.map(comment => (
+                {requisition.comments.length === 0 ? (
+                  <p className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No comments yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {requisition.comments.map(comment => (
                       <div key={comment.id} className="flex space-x-3">
-                        <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                           <span className="text-primary text-xs font-semibold">
-                            {comment.user.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {comment.user.full_name.split(' ').map(n => n[0]).join('')}
                           </span>
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-white font-medium text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className={`font-medium text-sm ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                               {comment.user.full_name}
                             </span>
-                            <span className="text-gray-400 text-xs">
+                            <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {timeAgo(comment.created_at)}
                             </span>
                           </div>
-                          <p className="text-gray-300 text-sm">{comment.message}</p>
+                          <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{comment.message}</p>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-
+                    ))}
+                  </div>
+                )}
+                
                 {/* Add Comment Form */}
-                <form onSubmit={handleAddComment} className="border-t border-gray-700 pt-4">
-                  <div className="flex space-x-3">
+                <form onSubmit={handleAddComment} className="mt-4">
+                  <div>
                     <textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      placeholder="Add a comment..."
-                      className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                      className={`flex-1 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
+                        isDarkMode 
+                          ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-400' 
+                          : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
                       rows="3"
                     />
                   </div>
@@ -334,56 +336,59 @@ const RequisitionDetail = () => {
         {/* Right Column - Actions */}
         <div className="space-y-6">
           {/* Action Panel */}
-          <div className="glass-panel p-6">
-            <h3 className="text-white font-semibold mb-4">Actions</h3>
+          <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+            <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Actions</h3>
             
             {canAct ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Comment {requisition.stage !== 'submitted' && '(required for reject/return)'}
                   </label>
                   <textarea
                     value={actionComment}
                     onChange={(e) => setActionComment(e.target.value)}
-                    placeholder="Add your comments..."
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                    rows="4"
+                    className={`w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
+                      isDarkMode 
+                        ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-400' 
+                        : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                    rows="3"
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="flex flex-col space-y-2">
                   <button
-                    onClick={() => handleApproval('approved')}
+                    onClick={() => handleAction('approve')}
                     disabled={isSubmitting}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="bg-primary hover:bg-primary-hover text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
                     <Check className="w-4 h-4" />
                     <span>Approve</span>
                   </button>
-                  
                   <button
-                    onClick={() => handleApproval('rejected')}
+                    onClick={() => handleAction('reject')}
                     disabled={isSubmitting}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
                     <X className="w-4 h-4" />
                     <span>Reject</span>
                   </button>
-                  
-                  <button
-                    onClick={() => handleApproval('returned')}
-                    disabled={isSubmitting}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Return for Edit</span>
-                  </button>
+                  {requisition.stage !== 'submitted' && (
+                    <button
+                      onClick={() => handleAction('return')}
+                      disabled={isSubmitting}
+                      className={`${isDarkMode ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Return</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-400">No action required from you at this stage</p>
+                <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>No action required from you at this stage</p>
               </div>
             )}
           </div>
