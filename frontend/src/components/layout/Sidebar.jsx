@@ -9,10 +9,12 @@ import {
   LogOut 
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 const Sidebar = () => {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const { isDarkMode } = useTheme()
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'dept_head', 'finance', 'admin'] },
@@ -31,11 +33,11 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="fixed left-0 top-0 h-full w-60 bg-dark-surface border-r border-gray-800 flex flex-col">
+    <div className={`fixed left-0 top-0 h-full w-60 flex flex-col ${isDarkMode ? 'bg-gray-900 border-r border-gray-800' : 'bg-white border-r border-gray-200'}`}>
       {/* Logo */}
-      <div className="p-6 border-b border-gray-800">
+      <div className={`p-6 border-b ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
         <h1 className="text-2xl font-bold text-primary">Operon</h1>
-        <p className="text-xs text-gray-400 mt-1">Requisition Pipeline</p>
+        <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Requisition Pipeline</p>
       </div>
 
       {/* Navigation */}
@@ -51,7 +53,9 @@ const Sidebar = () => {
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                 isActive
                   ? 'bg-primary text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  : isDarkMode 
+                    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -63,8 +67,8 @@ const Sidebar = () => {
 
       {/* User Info */}
       {user && (
-        <div className="p-4 border-t border-gray-800">
-          <div className="glass-panel p-4">
+        <div className={`p-4 border-t ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50 border border-gray-200'}`}>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">
@@ -72,17 +76,21 @@ const Sidebar = () => {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium truncate">
+                <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   {user.full_name}
                 </p>
-                <p className="text-gray-400 text-xs capitalize">
+                <p className={`text-xs capitalize ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   {user.role.replace('_', ' ')}
                 </p>
               </div>
             </div>
             <button
               onClick={logout}
-              className="mt-3 w-full flex items-center justify-center space-x-2 text-gray-400 hover:text-white hover:bg-gray-800 px-3 py-2 rounded-lg transition-all duration-200"
+              className={`mt-3 w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                isDarkMode 
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              }`}
             >
               <LogOut className="w-4 h-4" />
               <span className="text-sm">Logout</span>
