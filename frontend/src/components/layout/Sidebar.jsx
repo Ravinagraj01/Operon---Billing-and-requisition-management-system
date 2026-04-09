@@ -19,8 +19,8 @@ const Sidebar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'dept_head', 'finance', 'admin'] },
     { name: 'Pipeline', href: '/pipeline', icon: Columns, roles: ['employee', 'dept_head', 'finance', 'admin'] },
-    { name: 'New Request', href: '/requisitions/new', icon: PlusCircle, roles: ['employee', 'dept_head', 'finance', 'admin'] },
-    { name: 'Analytics', href: '/analytics', icon: BarChart2, roles: ['finance', 'admin'] },
+    { name: 'New Request', href: '/requisitions/new', icon: PlusCircle, roles: ['employee', 'dept_head'] },
+    { name: 'Analytics', href: '/analytics', icon: BarChart2, roles: ['dept_head', 'finance', 'admin'] },
     { name: 'Users', href: '/users', icon: Users, roles: ['admin'] },
   ]
 

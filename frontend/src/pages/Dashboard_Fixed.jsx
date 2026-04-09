@@ -8,17 +8,20 @@ import ErrorMessage from '../components/shared/ErrorMessage'
 import { formatCurrency, getStageLabel, getStageBadgeColor, formatDate } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { user } = useAuth()
+  const { isDarkMode } = useTheme()
 
   const fetchDashboardStats = async () => {
     try {
       setLoading(true)
       console.log('📊 Dashboard: Fetching stats...')
+      // Backend uses authenticated user context for role-based filtering
       const response = await api.get('/dashboard/stats')
       console.log('📊 Dashboard: Response received:', response.status, response.data)
       setStats(response.data)
@@ -58,7 +61,7 @@ const Dashboard = () => {
   if (!stats) {
     return (
       <div className="p-6">
-        <h1 className="text-white text-2xl">Loading dashboard data...</h1>
+        <h1 className={`text-2xl ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Loading dashboard data...</h1>
       </div>
     )
   }
@@ -67,10 +70,10 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white mb-2">
+        <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {getGreeting()}, {user?.full_name}
         </h1>
-        <p className="text-gray-400">Here's what's happening with your requisitions today</p>
+        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Here's what's happening with your requisitions today</p>
       </div>
 
       {/* KPI Cards */}
@@ -112,13 +115,13 @@ const Dashboard = () => {
         <SpendChart spendByDepartment={stats.spend_by_department} />
 
         {/* Stage Distribution */}
-        <div className="glass-panel p-6">
-          <h3 className="text-white font-semibold mb-4">Stage Distribution</h3>
+        <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+          <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Stage Distribution</h3>
           <div className="space-y-3">
             {Object.entries(stats.stage_counts).map(([stage, count]) => (
               <div key={stage} className="flex justify-between items-center">
-                <span className="text-gray-300">{getStageLabel(stage)}</span>
-                <span className={`px-3 py-1 rounded-full text-sm ${getStageBadgeColor(stage)}`}>
+                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>{getStageLabel(stage)}</span>
+                <span className={`px-3 py-1 rounded-full text-sm ${getStageBadgeColor(stage, isDarkMode)}`}>
                   {count}
                 </span>
               </div>

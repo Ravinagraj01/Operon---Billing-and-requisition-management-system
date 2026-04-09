@@ -5,6 +5,7 @@ import ErrorMessage from '../components/shared/ErrorMessage'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import api from '../api/axios'
 import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/AuthContext'
 
 const Analytics = () => {
   const [stats, setStats] = useState(null)
@@ -12,10 +13,12 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { isDarkMode } = useTheme()
+  const { user } = useAuth()
 
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true)
+      // Backend uses authenticated user context for role-based filtering
       const [statsResponse, requisitionsResponse] = await Promise.all([
         api.get('/dashboard/stats'),
         api.get('/requisitions/')
