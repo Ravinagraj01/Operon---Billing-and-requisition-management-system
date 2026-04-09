@@ -4,12 +4,14 @@ import LoadingSpinner from '../components/shared/LoadingSpinner'
 import ErrorMessage from '../components/shared/ErrorMessage'
 import { formatCurrency, formatDate } from '../utils/helpers'
 import api from '../api/axios'
+import { useTheme } from '../context/ThemeContext'
 
 const Analytics = () => {
   const [stats, setStats] = useState(null)
   const [requisitions, setRequisitions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { isDarkMode } = useTheme()
 
   const fetchAnalyticsData = async () => {
     try {
@@ -156,8 +158,8 @@ ${requisitions.slice(0, 10).map(req =>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-2">Analytics</h1>
-          <p className="text-gray-400">Comprehensive insights into requisition performance</p>
+          <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analytics</h1>
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Comprehensive insights into requisition performance</p>
         </div>
         <button
           onClick={generateReport}
@@ -170,12 +172,12 @@ ${requisitions.slice(0, 10).map(req =>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6 border-t-4 border-green-500">
+        <div className={`p-6 rounded-lg border-t-4 border-green-500 ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm font-medium mb-1">This Month Approved Value</p>
-              <p className="text-white text-2xl font-bold">{formatCurrency(thisMonthValue)}</p>
-              <p className="text-gray-400 text-xs mt-1">{thisMonthApproved.length} requisitions</p>
+              <p className={`text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>This Month Approved Value</p>
+              <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{formatCurrency(thisMonthValue)}</p>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{thisMonthApproved.length} requisitions</p>
             </div>
             <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-green-400" />
@@ -183,12 +185,12 @@ ${requisitions.slice(0, 10).map(req =>
           </div>
         </div>
 
-        <div className="glass-panel p-6 border-t-4 border-blue-500">
+        <div className={`p-6 rounded-lg border-t-4 border-blue-500 ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm font-medium mb-1">This Month Requisitions</p>
-              <p className="text-white text-2xl font-bold">{thisMonthRequisitions.length}</p>
-              <p className="text-gray-400 text-xs mt-1">Total submitted</p>
+              <p className={`text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>This Month Requisitions</p>
+              <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{thisMonthRequisitions.length}</p>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total submitted</p>
             </div>
             <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
               <FileText className="w-6 h-6 text-blue-400" />
@@ -196,12 +198,12 @@ ${requisitions.slice(0, 10).map(req =>
           </div>
         </div>
 
-        <div className="glass-panel p-6 border-t-4 border-orange-500">
+        <div className={`p-6 rounded-lg border-t-4 border-orange-500 ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-sm font-medium mb-1">Avg Approval Time</p>
-              <p className="text-white text-2xl font-bold">{stats.avg_approval_time_hours}h</p>
-              <p className="text-gray-400 text-xs mt-1">From submission to approval</p>
+              <p className={`text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avg Approval Time</p>
+              <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{stats.avg_approval_time_hours}h</p>
+              <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>From submission to approval</p>
             </div>
             <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-orange-400" />
@@ -213,11 +215,11 @@ ${requisitions.slice(0, 10).map(req =>
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Departments */}
-        <div className="glass-panel p-6">
-          <h3 className="text-white font-semibold mb-4">Top 3 Departments by Spend</h3>
+        <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+          <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Top 3 Departments by Spend</h3>
           <div className="space-y-3">
             {topDepartments.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No data available</p>
+              <p className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No data available</p>
             ) : (
               topDepartments.map(([dept, amount], index) => (
                 <div key={dept} className="flex items-center justify-between">
@@ -229,9 +231,9 @@ ${requisitions.slice(0, 10).map(req =>
                     }`}>
                       {index + 1}
                     </div>
-                    <span className="text-white font-medium">{dept}</span>
+                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{dept}</span>
                   </div>
-                  <span className="text-white font-semibold">{formatCurrency(amount)}</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{formatCurrency(amount)}</span>
                 </div>
               ))
             )}
@@ -239,11 +241,11 @@ ${requisitions.slice(0, 10).map(req =>
         </div>
 
         {/* Top Categories */}
-        <div className="glass-panel p-6">
-          <h3 className="text-white font-semibold mb-4">Top 3 Categories by Value</h3>
+        <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+          <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Top 3 Categories by Value</h3>
           <div className="space-y-3">
             {topCategories.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No data available</p>
+              <p className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No data available</p>
             ) : (
               topCategories.map(([category, amount], index) => (
                 <div key={category} className="flex items-center justify-between">
@@ -255,9 +257,9 @@ ${requisitions.slice(0, 10).map(req =>
                     }`}>
                       {index + 1}
                     </div>
-                    <span className="text-white font-medium">{category}</span>
+                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{category}</span>
                   </div>
-                  <span className="text-white font-semibold">{formatCurrency(amount)}</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{formatCurrency(amount)}</span>
                 </div>
               ))
             )}
@@ -266,19 +268,19 @@ ${requisitions.slice(0, 10).map(req =>
       </div>
 
       {/* Weekly Chart */}
-      <div className="glass-panel p-6">
-        <h3 className="text-white font-semibold mb-4">Requisitions per Week (Last 4 Weeks)</h3>
+      <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+        <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Requisitions per Week (Last 4 Weeks)</h3>
         <div className="space-y-4">
           {weeklyData.map((week, index) => (
             <div key={week.week} className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-white font-medium">{week.week}</span>
+                <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{week.week}</span>
                 <div className="text-right">
-                  <span className="text-white font-semibold">{week.count} reqs</span>
-                  <span className="text-gray-400 ml-2">{formatCurrency(week.value)}</span>
+                  <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{week.count} reqs</span>
+                  <span className={`ml-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{formatCurrency(week.value)}</span>
                 </div>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div className={`w-full rounded-full h-3 overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                 <div
                   className="h-full bg-gradient-to-r from-primary to-primary-hover rounded-full transition-all duration-1000 ease-out"
                   style={{
@@ -292,33 +294,33 @@ ${requisitions.slice(0, 10).map(req =>
       </div>
 
       {/* Compliance Rate */}
-      <div className="glass-panel p-6">
-        <h3 className="text-white font-semibold mb-4">SLA Compliance Rate</h3>
+      <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+        <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>SLA Compliance Rate</h3>
         <div className="flex items-center justify-center">
           <div className="relative">
-            <div className="w-32 h-32 rounded-full border-8 border-gray-700"></div>
+            <div className={`w-32 h-32 rounded-full border-8 ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}></div>
             <div 
               className="absolute top-0 left-0 w-32 h-32 rounded-full border-8 border-green-500 border-t-transparent border-r-transparent transform -rotate-45"
               style={{
                 borderRightColor: 'transparent',
                 borderTopColor: 'transparent',
                 transform: `rotate(-90deg)`,
-                background: `conic-gradient(#10b981 0deg ${(stats.total_requisitions > 0 ? ((stats.total_requisitions - stats.sla_breached) / stats.total_requisitions) * 360 : 0)}deg, #374151 0deg)`
+                background: `conic-gradient(#10b981 0deg ${(stats.total_requisitions > 0 ? ((stats.total_requisitions - stats.sla_breached) / stats.total_requisitions) * 360 : 0)}deg, ${isDarkMode ? '#374151' : '#e5e7eb'} 0deg)`
               }}
             ></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-2xl font-bold text-white">
+                <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                   {stats.total_requisitions > 0 
                     ? Math.round(((stats.total_requisitions - stats.sla_breached) / stats.total_requisitions) * 100)
                     : 100}%
                 </p>
-                <p className="text-gray-400 text-xs">Compliance</p>
+                <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Compliance</p>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-center text-gray-400 mt-4">
+        <p className={`text-center mt-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
           {stats.total_requisitions - stats.sla_breached} of {stats.total_requisitions} requisitions completed within SLA
         </p>
       </div>
