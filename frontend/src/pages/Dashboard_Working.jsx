@@ -20,16 +20,16 @@ const DashboardWorking = () => {
   const { isDarkMode } = useTheme()
 
   const colors = isDarkMode ? {
-    bg: '#1f2937',
+    bg: '#111827',
     text: '#ffffff',
     textSecondary: '#9ca3af',
     border: '#374151',
     cardBg: '#1f2937'
   } : {
-    bg: '#f9fafb',
-    text: '#1f2937',
+    bg: '#f3f4f6',
+    text: '#111827',
     textSecondary: '#6b7280',
-    border: '#e5e7eb',
+    border: '#d1d5db',
     cardBg: '#ffffff'
   }
 
@@ -62,7 +62,7 @@ const DashboardWorking = () => {
           border: `1px solid ${colors.border}` 
         }}>
           <h3 style={{ color: '#10b981', marginBottom: '10px' }}>Pipeline Value</h3>
-          <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors.text }}>${stats.pipeline_value.toLocaleString()}</p>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors.text }}>₹{stats.pipeline_value.toLocaleString()}</p>
         </div>
         
         <div style={{ 
@@ -82,7 +82,7 @@ const DashboardWorking = () => {
           border: `1px solid ${colors.border}` 
         }}>
           <h3 style={{ color: '#8b5cf6', marginBottom: '10px' }}>Approved Value</h3>
-          <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors.text }}>${stats.approved_value.toLocaleString()}</p>
+          <p style={{ fontSize: '24px', fontWeight: 'bold', color: colors.text }}>₹{stats.approved_value.toLocaleString()}</p>
         </div>
       </div>
       
