@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
+import { Moon, Sun } from 'lucide-react'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,7 @@ const Login = () => {
   
   const { login } = useAuth()
   const { showToast } = useToast()
+  const { isDarkMode, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const demoCredentials = [
@@ -66,7 +69,20 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4 relative">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 p-3 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors"
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {isDarkMode ? (
+          <Sun className="w-5 h-5 text-yellow-400" />
+        ) : (
+          <Moon className="w-5 h-5 text-gray-600" />
+        )}
+      </button>
+
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
