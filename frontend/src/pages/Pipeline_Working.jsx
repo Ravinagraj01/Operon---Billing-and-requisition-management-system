@@ -18,19 +18,19 @@ const PipelineWorking = () => {
   const { isDarkMode } = useTheme()
 
   const colors = isDarkMode ? {
-    bg: '#1f2937',
+    bg: '#111827',
     text: '#ffffff',
     textSecondary: '#9ca3af',
     border: '#374151',
     cardBg: '#1f2937',
     cardHover: '#374151'
   } : {
-    bg: '#f9fafb',
-    text: '#1f2937',
+    bg: '#f3f4f6',
+    text: '#111827',
     textSecondary: '#6b7280',
-    border: '#e5e7eb',
+    border: '#d1d5db',
     cardBg: '#ffffff',
-    cardHover: '#f3f4f6'
+    cardHover: '#f9fafb'
   }
 
   const stages = ['draft', 'submitted', 'dept_review', 'finance_review', 'procurement', 'approved', 'rejected']
@@ -202,20 +202,20 @@ const PipelineWorking = () => {
                       key={req.id}
                       onClick={() => navigate(`/requisitions/${req.id}`)}
                       style={{
-                        background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
+                        background: isDarkMode ? 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' : '#ffffff',
                         padding: '16px',
                         borderRadius: '12px',
                         cursor: 'pointer',
-                        border: '1px solid #4b5563',
+                        border: `1px solid ${colors.border}`,
                         transition: 'all 0.2s',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                        boxShadow: isDarkMode ? '0 2px 4px rgba(0, 0, 0, 0.2)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
                       }}
                       onMouseOver={(e) => {
                         e.target.style.borderColor = color
                         e.target.style.transform = 'translateY(-2px)'
                       }}
                       onMouseOut={(e) => {
-                        e.target.style.borderColor = '#4b5563'
+                        e.target.style.borderColor = isDarkMode ? '#4b5563' : '#d1d5db'
                         e.target.style.transform = 'translateY(0)'
                       }}
                     >
@@ -234,7 +234,7 @@ const PipelineWorking = () => {
                         fontSize: '13px', 
                         color: colors.textSecondary 
                       }}>
-                        <span>${req.amount.toLocaleString()}</span>
+                        <span>₹{req.amount.toLocaleString()}</span>
                         <span style={{
                           backgroundColor: isDarkMode ? '#374151' : '#e5e7eb',
                           padding: '4px 8px',
