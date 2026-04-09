@@ -50,8 +50,8 @@ export const timeAgo = (dateString) => {
   return 'Just now'
 }
 
-export const getStageBadgeColor = (stage) => {
-  const colors = {
+export const getStageBadgeColor = (stage, isDarkMode = true) => {
+  const darkColors = {
     draft: "bg-gray-600 text-gray-100",
     submitted: "bg-blue-600 text-blue-100",
     dept_review: "bg-yellow-600 text-yellow-100",
@@ -60,14 +60,26 @@ export const getStageBadgeColor = (stage) => {
     approved: "bg-green-600 text-green-100",
     rejected: "bg-red-600 text-red-100"
   }
-  return colors[stage] || "bg-gray-600 text-gray-100"
+  
+  const lightColors = {
+    draft: "bg-gray-200 text-gray-700",
+    submitted: "bg-blue-100 text-blue-700",
+    dept_review: "bg-yellow-100 text-yellow-700",
+    finance_review: "bg-orange-100 text-orange-700",
+    procurement: "bg-purple-100 text-purple-700",
+    approved: "bg-green-100 text-green-700",
+    rejected: "bg-red-100 text-red-700"
+  }
+  
+  const colors = isDarkMode ? darkColors : lightColors
+  return colors[stage] || (isDarkMode ? "bg-gray-600 text-gray-100" : "bg-gray-200 text-gray-700")
 }
 
-export const getPriorityColor = (score) => {
-  if (score >= 1 && score <= 3) return "text-green-400"
-  if (score >= 4 && score <= 6) return "text-yellow-400"
-  if (score >= 7 && score <= 10) return "text-red-400"
-  return "text-gray-400"
+export const getPriorityColor = (score, isDarkMode = true) => {
+  if (score >= 1 && score <= 3) return isDarkMode ? "text-green-400" : "text-green-600"
+  if (score >= 4 && score <= 6) return isDarkMode ? "text-yellow-400" : "text-yellow-600"
+  if (score >= 7 && score <= 10) return isDarkMode ? "text-red-400" : "text-red-600"
+  return isDarkMode ? "text-gray-400" : "text-gray-500"
 }
 
 export const getStageLabel = (stage) => {
