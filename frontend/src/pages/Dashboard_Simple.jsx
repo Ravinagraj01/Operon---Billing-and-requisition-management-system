@@ -51,7 +51,7 @@ const DashboardSimple = () => {
       ) : (
         <div>
           <p>Total Requisitions: {stats?.total_requisitions || 'No data'}</p>
-          <p>Pipeline Value: ${stats?.pipeline_value?.toLocaleString() || 'No data'}</p>
+          <p>Pipeline Value: ₹{stats?.pipeline_value?.toLocaleString() || 'No data'}</p>
         </div>
       )}
     </div>
