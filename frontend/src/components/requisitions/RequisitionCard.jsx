@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Clock } from 'lucide-react'
 import StatusBadge from './StatusBadge'
 import { formatCurrency, timeAgo, getPriorityColor, isOverSLA } from '../../utils/helpers'
+import { useTheme } from '../../context/ThemeContext'
 
 const RequisitionCard = ({ requisition }) => {
   const navigate = useNavigate()
+  const { isDarkMode } = useTheme()
 
   const handleClick = () => {
     navigate(`/requisitions/${requisition.id}`)
@@ -14,7 +16,11 @@ const RequisitionCard = ({ requisition }) => {
   return (
     <div 
       onClick={handleClick}
-      className="glass-panel p-4 border border-white/10 hover:border-primary/50 hover:shadow-lg transition-all duration-200 cursor-pointer"
+      className={`p-4 border hover:shadow-lg transition-all duration-200 cursor-pointer ${
+        isDarkMode 
+          ? 'glass-panel border-white/10 hover:border-primary/50' 
+          : 'bg-white border-gray-200 hover:border-primary/50'
+      }`}
     >
       {/* Top Row */}
       <div className="flex items-center justify-between mb-3">
@@ -22,7 +28,7 @@ const RequisitionCard = ({ requisition }) => {
           {requisition.req_id}
         </span>
         <div className="flex items-center space-x-2">
-          <span className={`text-xs font-medium ${getPriorityColor(requisition.priority_score)}`}>
+          <span className={`text-xs font-medium ${getPriorityColor(requisition.priority_score, isDarkMode)}`}>
             Priority: {requisition.priority_score}/10
           </span>
         </div>
@@ -30,24 +36,24 @@ const RequisitionCard = ({ requisition }) => {
 
       {/* Title and Department */}
       <div className="mb-3">
-        <h3 className="text-white font-semibold text-base mb-1 line-clamp-2">
+        <h3 className={`font-semibold text-base mb-1 line-clamp-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {requisition.title}
         </h3>
-        <p className="text-gray-400 text-sm">
+        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
           {requisition.department}
         </p>
       </div>
 
       {/* Bottom Row */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-white font-semibold text-base">
+        <span className={`font-semibold text-base ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {formatCurrency(requisition.amount)}
         </span>
         <StatusBadge stage={requisition.stage} />
       </div>
 
       {/* Time */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
+      <div className={`flex items-center justify-between text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
         <span>{timeAgo(requisition.created_at)}</span>
         {requisition.sla_deadline && isOverSLA(requisition.sla_deadline) && (
           <span className="text-red-400 flex items-center space-x-1">
