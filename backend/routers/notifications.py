@@ -6,7 +6,7 @@ from models import User, Notification
 from schemas import NotificationOut
 from auth import get_current_active_user
 
-router = APIRouter(prefix="/notifications", tags=["Notifications"])
+router = APIRouter(tags=["Notifications"])
 
 @router.get("/", response_model=List[NotificationOut])
 def get_notifications(

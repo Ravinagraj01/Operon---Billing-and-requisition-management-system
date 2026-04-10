@@ -7,7 +7,7 @@ from schemas import DashboardStats
 from auth import get_current_active_user
 from datetime import datetime
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(tags=["Dashboard"])
 
 @router.get("/stats", response_model=DashboardStats)
 def get_dashboard_stats(

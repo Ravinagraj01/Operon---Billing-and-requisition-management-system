@@ -6,7 +6,7 @@ from models import User, Requisition, Approval, Notification
 from schemas import ApprovalCreate, ApprovalOut
 from auth import get_current_active_user
 
-router = APIRouter(prefix="/approvals", tags=["Approvals"])
+router = APIRouter(tags=["Approvals"])
 
 STAGE_PROGRESSION = {
     "submitted": "dept_review",

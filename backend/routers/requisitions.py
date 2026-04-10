@@ -8,7 +8,7 @@ from models import User, Requisition, Notification
 from schemas import RequisitionCreate, RequisitionOut, RequisitionUpdate, RequisitionDetail
 from auth import get_current_active_user
 
-router = APIRouter(prefix="/requisitions", tags=["Requisitions"])
+router = APIRouter(tags=["Requisitions"])
 
 def generate_req_id(db):
     count = db.query(Requisition).count()

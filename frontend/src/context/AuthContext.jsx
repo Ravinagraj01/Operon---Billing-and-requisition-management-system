@@ -74,16 +74,18 @@ export const AuthProvider = ({ children }) => {
       
       const { access_token } = response.data
       
+      // Store token first so axios interceptor can attach it to /auth/me
+      localStorage.setItem('procura_token', access_token)
+      setToken(access_token)
+      
       // Get user info
       console.log('👤 Getting user info...')
       const userResponse = await api.get('/auth/me')
       const userData = userResponse.data
       console.log('✅ User data received:', userData)
       
-      // Store in state and localStorage
-      setToken(access_token)
+      // Store user data
       setUser(userData)
-      localStorage.setItem('procura_token', access_token)
       localStorage.setItem('procura_user', JSON.stringify(userData))
       
       console.log('💾 Login complete, user authenticated')
@@ -111,14 +113,16 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/register', userData)
       const { access_token } = response.data
       
+      // Store token first so axios interceptor can attach it to /auth/me
+      localStorage.setItem('procura_token', access_token)
+      setToken(access_token)
+      
       // Get user info
       const userResponse = await api.get('/auth/me')
       const userInfo = userResponse.data
       
-      // Store in state and localStorage
-      setToken(access_token)
+      // Store user data
       setUser(userInfo)
-      localStorage.setItem('procura_token', access_token)
       localStorage.setItem('procura_user', JSON.stringify(userInfo))
       
       return userInfo

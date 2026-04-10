@@ -6,7 +6,7 @@ from models import User
 from schemas import UserOut, UserUpdate
 from auth import get_current_active_user, require_admin
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(tags=["Users"])
 
 @router.get("/", response_model=List[UserOut])
 def get_all_users(
