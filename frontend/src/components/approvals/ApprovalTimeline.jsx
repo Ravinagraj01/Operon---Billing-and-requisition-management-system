@@ -2,7 +2,7 @@ import React from 'react'
 import { Check, X, Clock, User } from 'lucide-react'
 import { formatDateTime } from '../../utils/helpers'
 
-const ApprovalTimeline = ({ approvals, currentStage }) => {
+const ApprovalTimeline = ({ approvals, currentStage, createdAt, updatedAt }) => {
   const stages = [
     { key: 'submitted', label: 'Submitted' },
     { key: 'dept_review', label: 'Dept Review' },
@@ -13,6 +13,41 @@ const ApprovalTimeline = ({ approvals, currentStage }) => {
 
   const getApprovalForStage = (stage) => {
     return approvals.find(approval => approval.stage === stage)
+  }
+
+  const getStageTimestamp = (stage, approval) => {
+    if (stage === 'submitted' && createdAt) {
+      return formatDateTime(createdAt)
+    }
+    if (approval?.acted_at) {
+      return formatDateTime(approval.acted_at)
+    }
+    if (stage === currentStage && updatedAt) {
+      return formatDateTime(updatedAt)
+    }
+    return null
+  }
+
+  const getStageLabelText = (stage, approval, timestamp) => {
+    if (!timestamp) return null
+
+    if (stage === 'submitted') {
+      return `Submitted on ${timestamp}`
+    }
+
+    if (approval?.action === 'approved') {
+      return `Approved on ${timestamp}`
+    }
+
+    if (approval?.action === 'rejected') {
+      return `Rejected on ${timestamp}`
+    }
+
+    if (stage === currentStage) {
+      return `${stages.find(s => s.key === stage)?.label || 'Stage'} started on ${timestamp}`
+    }
+
+    return `Actioned on ${timestamp}`
   }
 
   const getStageStatus = (stage) => {
@@ -41,6 +76,8 @@ const ApprovalTimeline = ({ approvals, currentStage }) => {
         {stages.map((stage, index) => {
           const approval = getApprovalForStage(stage.key)
           const status = getStageStatus(stage.key)
+          const timestamp = getStageTimestamp(stage.key, approval)
+          const labelText = getStageLabelText(stage.key, approval, timestamp)
           
           return (
             <div key={stage.key} className="relative flex items-start space-x-4">
@@ -100,9 +137,13 @@ const ApprovalTimeline = ({ approvals, currentStage }) => {
                     {approval.comment && (
                       <p className="text-gray-300 text-sm mb-2">{approval.comment}</p>
                     )}
-                    <p className="text-gray-400 text-xs">
-                      {formatDateTime(approval.acted_at)}
-                    </p>
+                    {labelText && (
+                      <p className="text-gray-400 text-xs">{labelText}</p>
+                    )}
+                  </div>
+                ) : labelText ? (
+                  <div className="glass-panel p-3">
+                    <p className="text-gray-400 text-xs">{labelText}</p>
                   </div>
                 ) : status === 'pending' ? (
                   <p className="text-gray-400 text-sm">Not yet reached</p>

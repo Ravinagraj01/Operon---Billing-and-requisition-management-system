@@ -328,7 +328,7 @@ ${requisitions.slice(0, 10).map(req =>
           </div>
         </div>
         <p className={`text-center mt-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          {stats.total_requisitions - stats.sla_breached} of {stats.total_requisitions} requisitions completed within SLA
+          {stats.total_requisitions - stats.sla_breached} of {stats.total_requisitions} requisitions are within SLA
         </p>
       </div>
     </div>

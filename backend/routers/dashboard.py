@@ -117,14 +117,27 @@ def get_dashboard_stats(
             'updated_at': latest_req.updated_at
         }
 
-    # SLA breached
+    # SLA breached: count overdue open requisitions plus any completed after deadline
     now = datetime.utcnow()
-    sla_breached = base_query.filter(
+    open_overdue_count = base_query.filter(
         and_(
             Requisition.sla_deadline < now,
-            Requisition.stage.notin_(["approved", "rejected"])
+            Requisition.stage.notin_(['approved', 'rejected'])
         )
     ).count()
+
+    completed_reqs = base_query.filter(Requisition.stage.in_(['approved', 'rejected'])).all()
+    completed_late_count = 0
+    for req in completed_reqs:
+        if not req.sla_deadline:
+            continue
+        latest_approval = db.query(Approval).filter(
+            Approval.requisition_id == req.id
+        ).order_by(Approval.acted_at.desc()).first()
+        if latest_approval and latest_approval.acted_at > req.sla_deadline:
+            completed_late_count += 1
+
+    sla_breached = open_overdue_count + completed_late_count
     
     return DashboardStats(
         total_requisitions=total_requisitions,

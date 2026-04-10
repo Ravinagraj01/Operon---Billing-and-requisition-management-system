@@ -62,7 +62,7 @@ function App() {
             } />
             
             <Route path="/analytics" element={
-              <ProtectedRoute roles={['finance', 'admin']}>
+              <ProtectedRoute roles={['dept_head', 'finance', 'admin']}>
                 <AppLayout>
                   <Analytics />
                 </AppLayout>

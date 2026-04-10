@@ -264,6 +264,8 @@ const RequisitionDetail = () => {
               <ApprovalTimeline 
                 approvals={requisition.approvals || []} 
                 currentStage={requisition.stage}
+                createdAt={requisition.created_at}
+                updatedAt={requisition.updated_at}
               />
             ) : (
               <div className="space-y-4">

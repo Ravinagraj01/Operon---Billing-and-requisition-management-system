@@ -9,6 +9,17 @@ const DashboardWorking = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [requisitionsError, setRequisitionsError] = useState(null)
+  const [filteredStats, setFilteredStats] = useState({
+    total_requisitions: 0,
+    pipeline_value: 0,
+    pending_approvals: 0,
+    approved_value: 0,
+    spend_by_department: {},
+    stage_counts: {}
+  })
+  const [approvedRequisitions, setApprovedRequisitions] = useState([])
+  const [pendingRequisitions, setPendingRequisitions] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const { user } = useAuth()
   const { isDarkMode } = useTheme()
 
@@ -56,6 +67,96 @@ const DashboardWorking = () => {
     fetchRequisitions()
   }, [])
 
+  const calculateFilteredStats = (stats, user, requisitions) => {
+    const defaultStats = {
+      total_requisitions: 0,
+      pipeline_value: 0,
+      pending_approvals: 0,
+      approved_value: 0,
+      spend_by_department: {},
+      stage_counts: {}
+    }
+    if (!stats) return { filteredStats: defaultStats, approved: [], pending: [] }
+    let filteredApprovedRequisitions = requisitions.filter(req => req.stage === 'approved')
+    let filteredPendingRequisitions = requisitions.filter(req => !['approved', 'rejected'].includes(req.stage))
+    let filteredStats = { ...stats }
+    
+    if (user?.role === 'dept_head') {
+      // For dept heads: only show requisitions from their department
+      filteredApprovedRequisitions = filteredApprovedRequisitions.filter(req => req.department === user.department)
+      filteredPendingRequisitions = filteredPendingRequisitions.filter(req => 
+        req.department === user.department && req.stage === 'dept_review'
+      )
+      
+      // Calculate department-specific stats
+      const deptRequisitions = requisitions.filter(req => req.department === user.department)
+      const deptApprovedValue = deptRequisitions
+        .filter(req => req.stage === 'approved')
+        .reduce((sum, req) => sum + Number(req.amount || 0), 0)
+      const deptPipelineValue = deptRequisitions
+        .filter(req => req.stage !== 'rejected')
+        .reduce((sum, req) => sum + Number(req.amount || 0), 0)
+      const deptPendingApprovals = deptRequisitions
+        .filter(req => req.stage === 'dept_review')
+        .length
+      
+      // Filter department spend to only show their department
+      const userDeptSpend = stats?.spend_by_department?.[user.department]
+      const filteredDeptEntries = userDeptSpend ? [[user.department, userDeptSpend]] : []
+      
+      // Filter stage counts to only show relevant stages for dept head
+      const relevantStages = ['dept_review', 'approved']
+      const filteredStageEntries = Object.entries(stats?.stage_counts || {})
+        .filter(([stage]) => relevantStages.includes(stage))
+        .map(([stage, count]) => {
+          if (stage === 'dept_review') {
+            // Count only dept_review items for this department
+            return [stage, deptRequisitions.filter(req => req.stage === stage).length]
+          }
+          if (stage === 'approved') {
+            // Count only approved items for this department
+            return [stage, deptRequisitions.filter(req => req.stage === stage).length]
+          }
+          return [stage, count]
+        })
+      
+      filteredStats = {
+        ...stats,
+        total_requisitions: deptRequisitions.length,
+        pipeline_value: deptPipelineValue,
+        pending_approvals: deptPendingApprovals,
+        approved_value: deptApprovedValue,
+        spend_by_department: Object.fromEntries(filteredDeptEntries),
+        stage_counts: Object.fromEntries(filteredStageEntries)
+      }
+    }
+    
+    return { filteredStats, approved: filteredApprovedRequisitions, pending: filteredPendingRequisitions }
+  }
+
+  useEffect(() => {
+    const result = calculateFilteredStats(stats, user, requisitions)
+    setFilteredStats(result.filteredStats)
+    setApprovedRequisitions(result.approved)
+    setPendingRequisitions(result.pending)
+  }, [stats, user, requisitions])
+
+  const stageLabels = {
+    dept_review: 'Dept Review',
+    finance_review: 'Finance Review',
+    procurement: 'Procurement',
+    approved: 'Approved',
+    rejected: 'Rejected'
+  }
+
+  // For dept heads, only show relevant stages in the labels
+  const relevantStageLabels = user?.role === 'dept_head' 
+    ? { dept_review: 'Dept Review', approved: 'Approved' }
+    : stageLabels
+
+  const departmentEntries = filteredStats ? Object.entries(filteredStats.spend_by_department || {}) : []
+  const stageEntries = filteredStats ? Object.entries(filteredStats.stage_counts || {}) : []
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -73,18 +174,6 @@ const DashboardWorking = () => {
       hour: '2-digit',
       minute: '2-digit'
     })
-  }
-
-  const departmentEntries = stats ? Object.entries(stats.spend_by_department || {}) : []
-  const stageEntries = stats ? Object.entries(stats.stage_counts || {}) : []
-  const approvedRequisitions = requisitions.filter(req => req.stage === 'approved')
-  const pendingRequisitions = requisitions.filter(req => !['approved', 'rejected'].includes(req.stage))
-  const stageLabels = {
-    dept_review: 'Dept Review',
-    finance_review: 'Finance Review',
-    procurement: 'Procurement',
-    approved: 'Approved',
-    rejected: 'Rejected'
   }
 
   if (loading) {
@@ -121,10 +210,10 @@ const DashboardWorking = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         {[
-          { label: 'Total Requisitions', value: stats.total_requisitions, accent: '#60a5fa' },
-          { label: 'Pipeline Value', value: formatCurrency(stats.pipeline_value), accent: '#10b981' },
-          { label: 'Pending Approvals', value: stats.pending_approvals, accent: '#f59e0b' },
-          { label: 'Approved Value', value: formatCurrency(stats.approved_value), accent: '#8b5cf6' }
+          { label: 'Total Requisitions', value: filteredStats.total_requisitions, accent: '#60a5fa' },
+          { label: 'Pipeline Value', value: formatCurrency(filteredStats.pipeline_value), accent: '#10b981' },
+          { label: 'Pending Approvals', value: filteredStats.pending_approvals, accent: '#f59e0b' },
+          { label: 'Approved Value', value: formatCurrency(filteredStats.approved_value), accent: '#8b5cf6' }
         ].map((card) => (
           <div key={card.label} style={{ backgroundColor: colors.cardBg, padding: '22px', borderRadius: '16px', border: `1px solid ${colors.border}`, boxShadow: isDarkMode ? '0 12px 30px rgba(0,0,0,0.2)' : '0 8px 24px rgba(15,23,42,0.06)' }}>
             <div style={{ fontSize: '12px', fontWeight: '700', color: card.accent, marginBottom: '10px' }}>{card.label}</div>
@@ -211,7 +300,7 @@ const DashboardWorking = () => {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ color: '#10b981', fontWeight: '700' }}>{formatCurrency(req.amount)}</div>
-                      <div style={{ color: colors.textSecondary, fontSize: '12px' }}>{stageLabels[req.stage] || req.stage}</div>
+                      <div style={{ color: colors.textSecondary, fontSize: '12px' }}>{relevantStageLabels[req.stage] || req.stage}</div>
                     </div>
                   </div>
                   <div style={{ color: colors.textSecondary, fontSize: '12px' }}>Updated: {formatDateTime(req.updated_at)}</div>
@@ -242,7 +331,7 @@ const DashboardWorking = () => {
                       <div style={{ color: colors.textSecondary, fontSize: '13px' }}>{req.req_id}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ color: '#f59e0b', fontWeight: '700' }}>{stageLabels[req.stage] || req.stage}</div>
+                      <div style={{ color: '#f59e0b', fontWeight: '700' }}>{relevantStageLabels[req.stage] || req.stage}</div>
                       <div style={{ color: colors.textSecondary, fontSize: '12px' }}>{formatCurrency(req.amount)}</div>
                     </div>
                   </div>
