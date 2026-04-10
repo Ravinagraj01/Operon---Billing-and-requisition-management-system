@@ -129,6 +129,37 @@ const DashboardWorking = () => {
         spend_by_department: Object.fromEntries(filteredDeptEntries),
         stage_counts: Object.fromEntries(filteredStageEntries)
       }
+    } else if (user?.role === 'finance') {
+      // For finance: show finance review tasks plus requisitions he has actioned at finance_review
+      filteredApprovedRequisitions = requisitions.filter(req => ['procurement', 'approved'].includes(req.stage))
+      filteredPendingRequisitions = requisitions.filter(req => req.stage === 'finance_review')
+      
+      const financeRequisitions = requisitions
+      const financeApprovedValue = financeRequisitions
+        .filter(req => ['procurement', 'approved'].includes(req.stage))
+        .reduce((sum, req) => sum + Number(req.amount || 0), 0)
+      const financePipelineValue = financeRequisitions
+        .filter(req => req.stage !== 'rejected')
+        .reduce((sum, req) => sum + Number(req.amount || 0), 0)
+      const financePendingApprovals = financeRequisitions
+        .filter(req => req.stage === 'finance_review')
+        .length
+
+      filteredStats = {
+        ...stats,
+        total_requisitions: financeRequisitions.length,
+        pipeline_value: financePipelineValue,
+        pending_approvals: financePendingApprovals,
+        approved_value: financeApprovedValue,
+        spend_by_department: stats.spend_by_department,
+        stage_counts: stats.stage_counts
+      }
+    } else if (user?.role === 'admin') {
+      // For admin: show all approved and all pending tasks
+      filteredApprovedRequisitions = requisitions.filter(req => req.stage === 'approved')
+      filteredPendingRequisitions = requisitions.filter(req => !['approved', 'rejected'].includes(req.stage))
+      
+      filteredStats = { ...stats }
     }
     
     return { filteredStats, approved: filteredApprovedRequisitions, pending: filteredPendingRequisitions }

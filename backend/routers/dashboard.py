@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, or_
 from database import get_db
 from models import User, Requisition, Approval
 from schemas import DashboardStats, DashboardRequisitionSummary
@@ -20,9 +20,12 @@ def get_dashboard_stats(
     elif current_user.role == "dept_head":
         base_query = db.query(Requisition).filter(Requisition.department == current_user.department)
     elif current_user.role == "finance":
-        base_query = db.query(Requisition).filter(
-            Requisition.stage.in_(["finance_review", "procurement", "approved", "rejected"])
-        )
+        base_query = db.query(Requisition).outerjoin(Approval).filter(
+            or_(
+                Requisition.stage == "finance_review",
+                and_(Approval.stage == "finance_review", Approval.approver_id == current_user.id)
+            )
+        ).distinct()
     else:  # admin
         base_query = db.query(Requisition)
     

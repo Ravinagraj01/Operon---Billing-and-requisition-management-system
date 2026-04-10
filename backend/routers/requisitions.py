@@ -4,7 +4,7 @@ from sqlalchemy import and_, or_
 from typing import List, Optional
 from datetime import datetime, timedelta
 from database import get_db
-from models import User, Requisition, Notification
+from models import User, Requisition, Notification, Approval
 from schemas import RequisitionCreate, RequisitionOut, RequisitionUpdate, RequisitionDetail
 from auth import get_current_active_user
 
@@ -92,9 +92,12 @@ def get_requisitions(
     elif current_user.role == "dept_head":
         query = query.filter(Requisition.department == current_user.department)
     elif current_user.role == "finance":
-        query = query.filter(
-            Requisition.stage.in_(["finance_review", "procurement", "approved", "rejected"])
-        )
+        query = query.outerjoin(Approval).filter(
+            or_(
+                Requisition.stage == "finance_review",
+                and_(Approval.stage == "finance_review", Approval.approver_id == current_user.id)
+            )
+        ).distinct()
     # admin sees all
     
     # Apply filters
