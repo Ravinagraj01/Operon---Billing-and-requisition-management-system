@@ -74,15 +74,7 @@ export const AuthProvider = ({ children }) => {
       
       const { access_token } = response.data
       
-      // Store token immediately in localStorage
-      localStorage.setItem('procura_token', access_token)
-      console.log('💾 Token stored in localStorage')
-      
-      // Set the token for subsequent requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
-      console.log('🔐 Authorization header set for axios defaults')
-      
-      // Get user info with the token
+      // Get user info
       console.log('👤 Getting user info...')
       const userResponse = await api.get('/auth/me')
       const userData = userResponse.data
@@ -91,6 +83,7 @@ export const AuthProvider = ({ children }) => {
       // Store in state and localStorage
       setToken(access_token)
       setUser(userData)
+      localStorage.setItem('procura_token', access_token)
       localStorage.setItem('procura_user', JSON.stringify(userData))
       
       console.log('💾 Login complete, user authenticated')

@@ -28,7 +28,7 @@ const RequisitionCard = ({ requisition }) => {
           {requisition.req_id}
         </span>
         <div className="flex items-center space-x-2">
-          <span className={`text-xs font-medium ${getPriorityColor(requisition.priority_score, isDarkMode)}`}>
+          <span className={`text-xs font-medium ${getPriorityColor(requisition.priority_score)}`}>
             Priority: {requisition.priority_score}/10
           </span>
         </div>

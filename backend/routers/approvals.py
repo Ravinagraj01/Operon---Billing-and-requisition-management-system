@@ -37,8 +37,8 @@ def create_approval(
             detail="Requisition not found"
         )
     
-    # Check that current stage is not draft, approved, or rejected
-    if requisition.stage in ["draft", "approved", "rejected"]:
+    # Check that current stage is valid for approval
+    if requisition.stage in ["approved", "rejected"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot act on requisition in current stage"
@@ -102,16 +102,11 @@ def create_approval(
             requisition_id=requisition.id
         )
         db.add(notification)
-    
-    elif approval_data.action == "returned":
-        requisition.stage = "draft"
-        # Notify creator
-        notification = Notification(
-            user_id=requisition.created_by_id,
-            message=f"Your requisition {requisition.req_id} has been returned for edits. Feedback: {approval_data.comment}",
-            requisition_id=requisition.id
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid approval action"
         )
-        db.add(notification)
     
     db.commit()
     db.refresh(approval)

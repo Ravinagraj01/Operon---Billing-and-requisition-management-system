@@ -83,7 +83,7 @@ function App() {
         </Router>
       </AuthProvider>
     </ToastProvider>
-    </ThemeProvider>
+  </ThemeProvider>
   )
 }
 

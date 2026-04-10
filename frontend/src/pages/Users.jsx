@@ -97,18 +97,18 @@ const Users = () => {
 
   const getRoleBadgeColor = (role) => {
     const colors = {
-      admin: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      finance: 'bg-green-500/20 text-green-400 border-green-500/30',
-      dept_head: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      employee: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+      admin: 'role-tag-admin',
+      finance: 'role-tag-finance',
+      dept_head: 'role-tag-dept-head',
+      employee: 'role-tag-employee'
     }
     return colors[role] || colors.employee
   }
 
   const getStatusBadgeColor = (isActive) => {
     return isActive
-      ? 'bg-green-500/20 text-green-400 border-green-500/30'
-      : 'bg-red-500/20 text-red-400 border-red-500/30'
+      ? 'status-capsule-active'
+      : 'bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 rounded-full text-xs'
   }
 
   if (loading) {
@@ -126,64 +126,63 @@ const Users = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Users Management</h1>
-        <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Manage system users and their permissions</p>
+      <div className="glass-panel p-6">
+        <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Users Management</h1>
+        <p className="text-gray-400">Manage system users and their permissions</p>
       </div>
 
       {/* Search */}
-      <div className={`p-4 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+      <div className="glass-panel p-5">
         <div className="relative">
-          <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
-              isDarkMode 
-                ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-400' 
-                : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
-            }`}
+            className="glass-input w-full pl-10 pr-4 py-3 text-white placeholder-gray-400"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      <div className={`overflow-hidden rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+      <div className="glass-panel overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className={`border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>User</th>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Email</th>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Role</th>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Department</th>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Status</th>
-                <th className={`text-left p-4 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Actions</th>
+              <tr className="border-b border-white/10">
+                <th className="text-left p-4 font-medium text-gray-400">User</th>
+                <th className="text-left p-4 font-medium text-gray-400">Email</th>
+                <th className="text-left p-4 font-medium text-gray-400">Role</th>
+                <th className="text-left p-4 font-medium text-gray-400">Department</th>
+                <th className="text-left p-4 font-medium text-gray-400">Status</th>
+                <th className="text-left p-4 font-medium text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className={`text-center p-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <td colSpan="6" className="text-center p-8 text-gray-400">
                     {searchTerm ? 'No users found matching your search' : 'No users found'}
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user, index) => (
                   <React.Fragment key={user.id}>
-                    <tr className={`border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-800/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                    <tr className={`table-row border-b border-white/5 stagger-row ${index % 2 === 0 ? '' : ''}`}>
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                            <UserIcon className="w-4 h-4 text-primary" />
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center backdrop-blur-sm border border-white/20">
+                            <span className="text-white font-semibold text-sm">
+                              {user.full_name.split(' ').map(n => n[0]).join('')}
+                            </span>
                           </div>
-                          <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.full_name}</span>
+                          <span className="font-medium text-white">{user.full_name}</span>
                         </div>
+                        <div className="light-bar"></div>
                       </td>
                       <td className="p-4">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{user.email}</span>
+                        <span className="text-sm text-gray-300">{user.email}</span>
                       </td>
                       <td className="p-4">
                         <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border ${getRoleBadgeColor(user.role)}`}>
@@ -191,12 +190,12 @@ const Users = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <span className="text-sm text-gray-300">
                           {user.department || '—'}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border ${getStatusBadgeColor(user.is_active)}`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(user.is_active)}`}>
                           {user.is_active ? 'ACTIVE' : 'INACTIVE'}
                         </span>
                       </td>
@@ -204,7 +203,7 @@ const Users = () => {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleEdit(user)}
-                            className={`p-1 transition-colors ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+                            className="p-2 rounded-lg transition-colors text-gray-400 hover:text-white hover:bg-white/5"
                             title="Edit user"
                           >
                             <Edit className="w-4 h-4" />
@@ -212,7 +211,7 @@ const Users = () => {
                           {user.is_active && (
                             <button
                               onClick={() => handleDeactivate(user)}
-                              className={`p-1 transition-colors ${isDarkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-600'}`}
+                              className="p-2 rounded-lg transition-colors text-gray-400 hover:text-red-400 hover:bg-white/5"
                               title="Deactivate user"
                             >
                               <Trash2 className="w-4 h-4" />

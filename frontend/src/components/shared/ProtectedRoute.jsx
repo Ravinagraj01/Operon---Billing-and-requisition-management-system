@@ -6,20 +6,15 @@ import LoadingSpinner from './LoadingSpinner'
 const ProtectedRoute = ({ children, roles = [] }) => {
   const { user, isLoading } = useAuth()
 
-  console.log('🛡️ ProtectedRoute:', { user: !!user, isLoading, roles })
-
   if (isLoading) {
-    console.log('⏳ ProtectedRoute: Showing loading spinner')
     return <LoadingSpinner fullPage />
   }
 
   if (!user) {
-    console.log('🚪 ProtectedRoute: No user, redirecting to login')
     return <Navigate to="/login" replace />
   }
 
   if (roles.length > 0 && !roles.includes(user.role)) {
-    console.log('🚫 ProtectedRoute: User role not authorized')
     return (
       <div className="min-h-screen bg-dark flex items-center justify-center">
         <div className="glass-panel p-8 max-w-md text-center">
@@ -38,7 +33,6 @@ const ProtectedRoute = ({ children, roles = [] }) => {
     )
   }
 
-  console.log('✅ ProtectedRoute: User authenticated, showing children')
   return children
 }
 

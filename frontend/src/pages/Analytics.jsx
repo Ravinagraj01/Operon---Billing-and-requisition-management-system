@@ -18,10 +18,14 @@ const Analytics = () => {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true)
-      // Backend uses authenticated user context for role-based filtering
+      // Pass role and department for role-based filtering
+      const params = new URLSearchParams()
+      if (user?.role) params.append('role', user.role)
+      if (user?.department) params.append('department', user.department)
+      
       const [statsResponse, requisitionsResponse] = await Promise.all([
-        api.get('/dashboard/stats'),
-        api.get('/requisitions/')
+        api.get(`/dashboard/stats?${params.toString()}`),
+        api.get(`/requisitions/?${params.toString()}`)
       ])
       setStats(statsResponse.data)
       setRequisitions(requisitionsResponse.data)
@@ -36,7 +40,7 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchAnalyticsData()
-  }, [])
+  }, [user?.role, user?.department])
 
   const generateReport = () => {
     const report = `

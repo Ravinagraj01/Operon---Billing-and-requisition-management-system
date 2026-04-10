@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import auth, users, requisitions, approvals, comments, notifications, dashboard
+from routers import auth, users, requisitions, approvals, notifications, dashboard
 from seed import seed_data
 
 # Create FastAPI app
@@ -22,12 +22,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router, tags=["Authentication"])
-app.include_router(users.router, tags=["Users"])
-app.include_router(requisitions.router, tags=["Requisitions"])
-app.include_router(approvals.router, tags=["Approvals"])
-app.include_router(comments.router, tags=["Comments"])
-app.include_router(notifications.router, tags=["Notifications"])
-app.include_router(dashboard.router, tags=["Dashboard"])
+app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(requisitions.router, prefix="/requisitions", tags=["Requisitions"])
+app.include_router(approvals.router, prefix="/approvals", tags=["Approvals"])
+app.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 
 @app.on_event("startup")
 def startup_event():

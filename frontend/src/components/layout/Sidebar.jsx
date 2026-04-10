@@ -32,34 +32,45 @@ const Sidebar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
   }
 
+  const getRoleGradientClass = (role) => {
+    const gradients = {
+      admin: 'role-tag-admin',
+      finance: 'role-tag-finance',
+      dept_head: 'role-tag-dept-head',
+      employee: 'role-tag-employee'
+    }
+    return gradients[role] || 'role-tag-employee'
+  }
+
   return (
-    <div className={`fixed left-0 top-0 h-full w-60 flex flex-col ${isDarkMode ? 'bg-gray-900 border-r border-gray-800' : 'bg-white border-r border-gray-200'}`}>
+    <div className={`fixed left-0 top-0 h-full w-60 flex flex-col glass-panel m-4 my-4 rounded-3xl z-50`}>
       {/* Logo */}
-      <div className={`p-6 border-b ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-        <h1 className="text-2xl font-bold text-primary">Operon</h1>
-        <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Requisition Pipeline</p>
+      <div className="p-6 border-b border-white/10">
+        <h1 className="text-2xl font-bold text-white tracking-tight">Operon</h1>
+        <p className="text-xs mt-1 text-gray-400">Requisition Pipeline</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-2">
         {filteredNavigation.map((item) => {
-          const Icon = item.icon
           const isActive = location.pathname === item.href
-          
           return (
             <NavLink
               key={item.name}
               to={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 relative ${
                 isActive
-                  ? 'bg-primary text-white shadow-lg'
-                  : isDarkMode 
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-medium">{item.name}</span>
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-xl blur-xl opacity-50"></div>
+              )}
+              <div className={`relative z-10 ${isActive ? 'text-white' : 'text-gray-400'}`}>
+                <item.icon className="w-5 h-5" />
+              </div>
+              <span className="font-medium relative z-10">{item.name}</span>
             </NavLink>
           )
         })}

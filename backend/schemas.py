@@ -50,7 +50,6 @@ class RequisitionOut(BaseModel):
     vendor_suggestion: Optional[str]
     amount: float
     department: str
-    priority_score: int
     stage: str
     is_duplicate_flag: bool
     created_by_id: int

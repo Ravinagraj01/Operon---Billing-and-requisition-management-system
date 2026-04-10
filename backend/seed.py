@@ -22,28 +22,28 @@ def seed_data():
             User(
                 full_name="Super Admin",
                 email="admin@procura.com",
-                hashed_password=hash_password("admin"),
+                hashed_password=hash_password("admin123"),
                 role="admin",
                 department="Management"
             ),
             User(
                 full_name="Finance Manager",
                 email="finance@procura.com",
-                hashed_password=hash_password("fin"),
+                hashed_password=hash_password("fin123"),
                 role="finance",
                 department="Finance"
             ),
             User(
                 full_name="Dept Head",
                 email="depthead@procura.com",
-                hashed_password=hash_password("dept"),
+                hashed_password=hash_password("dept123"),
                 role="dept_head",
                 department="Engineering"
             ),
             User(
                 full_name="John Employee",
                 email="employee@procura.com",
-                hashed_password=hash_password("emp"),
+                hashed_password=hash_password("emp123"),
                 role="employee",
                 department="Engineering"
             )

@@ -82,12 +82,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* TEST: Simple render test */}
-      <div className="glass-panel p-6">
-        <h1 className="text-white text-2xl">TEST: Dashboard is rendering!</h1>
-        <p className="text-gray-400">Current time: {new Date().toLocaleTimeString()}</p>
-      </div>
-
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white mb-2">

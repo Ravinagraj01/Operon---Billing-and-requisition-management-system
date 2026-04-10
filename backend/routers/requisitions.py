@@ -10,20 +10,6 @@ from auth import get_current_active_user
 
 router = APIRouter(prefix="/requisitions", tags=["Requisitions"])
 
-def calculate_priority_score(amount, category):
-    score = 5
-    if amount > 100000:
-        score += 3
-    elif amount > 50000:
-        score += 2
-    elif amount > 10000:
-        score += 1
-    if category in ["IT", "Security"]:
-        score += 2
-    elif category in ["Legal", "HR"]:
-        score += 1
-    return min(max(score, 1), 10)
-
 def generate_req_id(db):
     count = db.query(Requisition).count()
     return f"REQ-{str(count + 1).zfill(4)}"
@@ -49,13 +35,10 @@ def create_requisition(
     # Generate req_id
     req_id = generate_req_id(db)
     
-    # Calculate priority score
-    priority_score = calculate_priority_score(requisition.amount, requisition.category)
-    
     # Check duplicate
     is_duplicate = check_duplicate(db, requisition.title, requisition.category, requisition.department)
     
-    # Create requisition
+    # Create requisition in the submitted state immediately
     new_requisition = Requisition(
         req_id=req_id,
         title=requisition.title,
@@ -64,8 +47,7 @@ def create_requisition(
         vendor_suggestion=requisition.vendor_suggestion,
         amount=requisition.amount,
         department=requisition.department,
-        priority_score=priority_score,
-        stage="draft",
+        stage="submitted",
         is_duplicate_flag=is_duplicate,
         created_by_id=current_user.id
     )
@@ -180,23 +162,17 @@ def update_requisition(
             detail="Only creator can edit requisition"
         )
     
-    # Only allowed if stage is draft
-    if requisition.stage != "draft":
+    # Only allowed if stage is submitted
+    if requisition.stage != "submitted":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can only edit requisitions in draft stage"
+            detail="Can only edit requisitions that are still submitted"
         )
     
     # Update fields
     update_data = requisition_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(requisition, field, value)
-    
-    # Recalculate priority score if amount or category changed
-    if "amount" in update_data or "category" in update_data:
-        requisition.priority_score = calculate_priority_score(
-            requisition.amount, requisition.category
-        )
     
     db.commit()
     db.refresh(requisition)

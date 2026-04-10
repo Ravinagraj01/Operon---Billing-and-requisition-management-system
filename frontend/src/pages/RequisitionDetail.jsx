@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Edit, Trash2, Send, Check, X, RotateCcw, MessageSquare, Clock, AlertCircle, User } from 'lucide-react'
+import { Edit, Trash2, Check, X, MessageSquare, Clock, AlertCircle, User } from 'lucide-react'
 import StatusBadge from '../components/requisitions/StatusBadge'
 import ApprovalTimeline from '../components/approvals/ApprovalTimeline'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import ErrorMessage from '../components/shared/ErrorMessage'
-import { formatCurrency, formatDateTime, timeAgo, getPriorityColor, isOverSLA, canApprove } from '../utils/helpers'
+import { formatCurrency, formatDateTime, timeAgo, isOverSLA, canApprove } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -152,9 +152,6 @@ const RequisitionDetail = () => {
             <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               {formatCurrency(requisition.amount)}
             </div>
-            <div className={`text-sm font-medium ${getPriorityColor(requisition.priority_score, isDarkMode)}`}>
-              Priority: {requisition.priority_score}/10
-            </div>
             {requisition.sla_deadline && (
               <div className={`text-sm flex items-center space-x-1 ${
                 isOverSLA(requisition.sla_deadline) ? 'text-red-400' : 'text-gray-400'
@@ -221,13 +218,6 @@ const RequisitionDetail = () => {
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete</span>
-            </button>
-            <button
-              onClick={() => handleApproval('submitted')}
-              className="bg-primary hover:bg-primary-hover text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <Send className="w-4 h-4" />
-              <span>Submit for Approval</span>
             </button>
           </>
         )}
@@ -359,7 +349,7 @@ const RequisitionDetail = () => {
                 
                 <div className="flex flex-col space-y-2">
                   <button
-                    onClick={() => handleAction('approve')}
+                    onClick={() => handleApproval('approved')}
                     disabled={isSubmitting}
                     className="bg-primary hover:bg-primary-hover text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
@@ -367,28 +357,18 @@ const RequisitionDetail = () => {
                     <span>Approve</span>
                   </button>
                   <button
-                    onClick={() => handleAction('reject')}
+                    onClick={() => handleApproval('rejected')}
                     disabled={isSubmitting}
                     className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
                     <X className="w-4 h-4" />
                     <span>Reject</span>
                   </button>
-                  {requisition.stage !== 'submitted' && (
-                    <button
-                      onClick={() => handleAction('return')}
-                      disabled={isSubmitting}
-                      className={`${isDarkMode ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'} text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      <span>Return</span>
-                    </button>
-                  )}
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>No action required from you at this stage</p>
+                <p className="text-gray-400">No action required from you at this stage</p>
               </div>
             )}
           </div>
