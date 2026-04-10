@@ -43,11 +43,11 @@ const Sidebar = () => {
   }
 
   return (
-    <div className={`fixed left-0 top-0 h-full w-60 flex flex-col glass-panel m-4 my-4 rounded-3xl z-50`}>
+    <div className={`fixed left-0 top-0 bottom-0 w-60 flex flex-col rounded-3xl z-50 overflow-y-auto ${isDarkMode ? 'glass-panel' : 'bg-white/90 border-r border-gray-200 shadow-sm'}`}>
       {/* Logo */}
-      <div className="p-6 border-b border-white/10">
-        <h1 className="text-2xl font-bold text-white tracking-tight">Operon</h1>
-        <p className="text-xs mt-1 text-gray-400">Requisition Pipeline</p>
+      <div className={`p-6 border-b ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+        <h1 className={`text-2xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Operon</h1>
+        <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Requisition Pipeline</p>
       </div>
 
       {/* Navigation */}
@@ -60,17 +60,19 @@ const Sidebar = () => {
               to={item.href}
               className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 relative ${
                 isActive
-                  ? 'text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'text-white bg-primary/20' 
+                  : isDarkMode 
+                    ? 'text-gray-400 hover:text-white hover:bg-white/5' 
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
               {isActive && (
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent rounded-xl blur-xl opacity-50"></div>
               )}
-              <div className={`relative z-10 ${isActive ? 'text-white' : 'text-gray-400'}`}>
+              <div className={`relative z-10 ${isActive ? 'text-white' : isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 <item.icon className="w-5 h-5" />
               </div>
-              <span className="font-medium relative z-10">{item.name}</span>
+              <span className={`font-medium relative z-10 ${isActive ? 'text-white' : isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>{item.name}</span>
             </NavLink>
           )
         })}
@@ -79,7 +81,7 @@ const Sidebar = () => {
       {/* User Info */}
       {user && (
         <div className={`p-4 border-t ${isDarkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50 border border-gray-200'}`}>
+          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-200 shadow-sm'}`}>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <span className="text-primary font-semibold text-sm">

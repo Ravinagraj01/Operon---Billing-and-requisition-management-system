@@ -138,11 +138,12 @@ const RequisitionDetail = () => {
         <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
             <h1 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{requisition.title}</h1>
-            <div className={`flex items-center space-x-4 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              <span className="flex items-center space-x-1">
-                <User className="w-4 h-4" />
-                <span>{requisition.creator.full_name}</span>
-              </span>
+            <div className="flex flex-wrap gap-3 items-center text-sm">
+              <StatusBadge stage={requisition.stage} />
+              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Req ID: {requisition.req_id}</span>
+              <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Internal ID: {requisition.id}</span>
+            </div>
+            <div className={`flex items-center flex-wrap space-x-4 mt-3 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <span>{requisition.department}</span>
               <span>{formatDateTime(requisition.created_at)}</span>
             </div>
@@ -299,12 +300,14 @@ const RequisitionDetail = () => {
                     <textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className={`flex-1 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
+                      className={`w-full px-4 py-4 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
                         isDarkMode 
                           ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-400' 
                           : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
                       }`}
-                      rows="3"
+                      rows="6"
+                      style={{ minHeight: '180px' }}
+                      placeholder="Write a comment..."
                     />
                   </div>
                   <div className="mt-2 flex justify-end">
@@ -333,17 +336,19 @@ const RequisitionDetail = () => {
               <div className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Comment {requisition.stage !== 'submitted' && '(required for reject/return)'}
+                    Comment (required for reject/return)
                   </label>
                   <textarea
                     value={actionComment}
                     onChange={(e) => setActionComment(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
+                    className={`w-full px-4 py-4 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none ${
                       isDarkMode 
                         ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-400' 
                         : 'bg-white border border-gray-300 text-gray-900 placeholder-gray-500'
                     }`}
-                    rows="3"
+                    rows="6"
+                    style={{ minHeight: '180px' }}
+                    placeholder="Leave a comment for approval action..."
                   />
                 </div>
                 

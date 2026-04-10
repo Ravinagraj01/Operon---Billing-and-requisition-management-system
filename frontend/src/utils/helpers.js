@@ -53,7 +53,6 @@ export const timeAgo = (dateString) => {
 export const getStageBadgeColor = (stage, isDarkMode = true) => {
   const darkColors = {
     draft: "bg-gray-600 text-gray-100",
-    submitted: "bg-blue-600 text-blue-100",
     dept_review: "bg-yellow-600 text-yellow-100",
     finance_review: "bg-orange-600 text-orange-100",
     procurement: "bg-purple-600 text-purple-100",
@@ -63,7 +62,6 @@ export const getStageBadgeColor = (stage, isDarkMode = true) => {
   
   const lightColors = {
     draft: "bg-gray-200 text-gray-700",
-    submitted: "bg-blue-100 text-blue-700",
     dept_review: "bg-yellow-100 text-yellow-700",
     finance_review: "bg-orange-100 text-orange-700",
     procurement: "bg-purple-100 text-purple-700",
@@ -85,7 +83,6 @@ export const getPriorityColor = (score) => {
 export const getStageLabel = (stage) => {
   const labels = {
     draft: "Draft",
-    submitted: "Submitted",
     dept_review: "Dept Review",
     finance_review: "Finance Review",
     procurement: "Procurement",
@@ -97,7 +94,6 @@ export const getStageLabel = (stage) => {
 
 export const canApprove = (userRole, stage) => {
   const stageRoleMap = {
-    submitted: "dept_head",
     dept_review: "dept_head",
     finance_review: "finance",
     procurement: "admin"

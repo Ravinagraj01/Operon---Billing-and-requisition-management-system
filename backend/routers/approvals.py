@@ -9,14 +9,12 @@ from auth import get_current_active_user
 router = APIRouter(tags=["Approvals"])
 
 STAGE_PROGRESSION = {
-    "submitted": "dept_review",
     "dept_review": "finance_review",
     "finance_review": "procurement",
     "procurement": "approved"
 }
 
 STAGE_ROLE_MAP = {
-    "submitted": "dept_head",
     "dept_review": "dept_head",
     "finance_review": "finance",
     "procurement": "admin"

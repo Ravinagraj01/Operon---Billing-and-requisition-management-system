@@ -113,7 +113,7 @@ const NewRequisition = () => {
     vendor_suggestion: formData.vendor_suggestion,
     amount: parseFloat(formData.amount) || 0,
     department: formData.department || user?.department || 'Department',
-    stage: 'submitted',
+    stage: 'dept_review',
     is_duplicate_flag: false,
     created_at: new Date().toISOString(),
     creator: user

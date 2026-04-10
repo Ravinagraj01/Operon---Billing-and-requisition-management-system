@@ -129,7 +129,7 @@ def complete_reset():
                 amount=200000.0,
                 department="Marketing",
                 priority_score=8,
-                stage="submitted",
+                stage="dept_review",
                 created_by_id=users[3].id,
                 sla_deadline=datetime.utcnow() + timedelta(hours=48)
             ),
@@ -173,7 +173,7 @@ def complete_reset():
             Approval(
                 requisition_id=requisitions[0].id,
                 approver_id=users[2].id,
-                stage="submitted",
+                stage="dept_review",
                 action="approved",
                 comment="Approved for engineering team",
                 acted_at=datetime.utcnow()

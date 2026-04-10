@@ -98,7 +98,7 @@ The application will be available at `http://localhost:5173`
 ## Feature List
 
 ### Core Features
-- **Multi-stage Approval Workflow**: Draft → Submitted → Department Review → Finance Review → Procurement → Approved
+- **Multi-stage Approval Workflow**: Draft → Department Review → Finance Review → Procurement → Approved
 - **Role-based Access Control**: Granular permissions based on user roles
 - **Real-time Notifications**: Email-style notifications for actions and deadlines
 - **SLA Monitoring**: 48-hour approval window with breach alerts

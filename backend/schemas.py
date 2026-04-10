@@ -123,6 +123,19 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 # Dashboard Schemas
+class DashboardRequisitionSummary(BaseModel):
+    id: int
+    req_id: str
+    title: str
+    stage: str
+    amount: float
+    department: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class DashboardStats(BaseModel):
     total_requisitions: int
     pipeline_value: float
@@ -132,3 +145,4 @@ class DashboardStats(BaseModel):
     spend_by_department: Dict[str, float]
     stage_counts: Dict[str, int]
     sla_breached: int
+    latest_requisition: Optional[DashboardRequisitionSummary] = None

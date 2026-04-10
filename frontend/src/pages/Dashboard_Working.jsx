@@ -5,8 +5,10 @@ import api from '../api/axios'
 
 const DashboardWorking = () => {
   const [stats, setStats] = useState(null)
+  const [requisitions, setRequisitions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [requisitionsError, setRequisitionsError] = useState(null)
   const { user } = useAuth()
   const { isDarkMode } = useTheme()
 
@@ -39,7 +41,19 @@ const DashboardWorking = () => {
       }
     }
 
+    const fetchRequisitions = async () => {
+      try {
+        const response = await api.get('/requisitions/')
+        setRequisitions(response.data || [])
+        setRequisitionsError(null)
+      } catch (err) {
+        console.error('Dashboard requisitions load failed:', err)
+        setRequisitionsError('Unable to load requisition details')
+      }
+    }
+
     fetchStats()
+    fetchRequisitions()
   }, [])
 
   const formatCurrency = (value) => {
@@ -50,8 +64,28 @@ const DashboardWorking = () => {
     }).format(value)
   }
 
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   const departmentEntries = stats ? Object.entries(stats.spend_by_department || {}) : []
   const stageEntries = stats ? Object.entries(stats.stage_counts || {}) : []
+  const approvedRequisitions = requisitions.filter(req => req.stage === 'approved')
+  const pendingRequisitions = requisitions.filter(req => !['approved', 'rejected'].includes(req.stage))
+  const stageLabels = {
+    dept_review: 'Dept Review',
+    finance_review: 'Finance Review',
+    procurement: 'Procurement',
+    approved: 'Approved',
+    rejected: 'Rejected'
+  }
 
   if (loading) {
     return (
@@ -129,8 +163,8 @@ const DashboardWorking = () => {
         </div>
       </div>
 
-      <div style={{ backgroundColor: colors.cardBg, padding: '22px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
-        <h3 style={{ color: colors.text, marginBottom: '16px' }}>Details</h3>
+      {/* <div style={{ backgroundColor: colors.cardBg, padding: '22px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
+        <h3 style={{ color: colors.text, marginBottom: '16px' }}>Detailssddsd</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
           <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb', border: `1px solid ${colors.border}` }}>
             <div style={{ color: colors.textSecondary, marginBottom: '8px' }}>Average Approval Time</div>
@@ -140,6 +174,85 @@ const DashboardWorking = () => {
             <div style={{ color: colors.textSecondary, marginBottom: '8px' }}>SLA Breached</div>
             <div style={{ color: colors.text, fontWeight: '700' }}>{stats.sla_breached}</div>
           </div>
+          <div style={{ padding: '16px', borderRadius: '14px', backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb', border: `1px solid ${colors.border}` }}>
+            <div style={{ color: colors.textSecondary, marginBottom: '8px' }}>Latest Request</div>
+            {stats.latest_requisition ? (
+              <div>
+                <div style={{ fontWeight: '700', color: colors.text, marginBottom: '6px' }}>{stats.latest_requisition.title}</div>
+                <div style={{ color: colors.textSecondary, fontSize: '13px', marginBottom: '6px' }}>Req ID: {stats.latest_requisition.req_id}</div>
+                <div style={{ color: colors.textSecondary, fontSize: '13px', marginBottom: '6px' }}>Stage: {stats.latest_requisition.stage.replace('_', ' ')}</div>
+                <div style={{ color: colors.textSecondary, fontSize: '13px' }}>Updated: {formatDateTime(stats.latest_requisition.updated_at)}</div>
+              </div>
+            ) : (
+              <div style={{ color: colors.textSecondary, fontSize: '13px' }}>No recent requisitions yet.</div>
+            )}
+          </div>
+        </div>
+      </div> */}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginTop: '24px' }}>
+        <div style={{ backgroundColor: colors.cardBg, padding: '22px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div>
+              <h3 style={{ color: colors.text, marginBottom: '6px' }}>Approved Requests</h3>
+              <p style={{ color: colors.textSecondary, fontSize: '13px' }}>All approved requisitions</p>
+            </div>
+            <span style={{ backgroundColor: '#10b981', color: '#ecfdf5', padding: '6px 12px', borderRadius: '999px', fontSize: '12px' }}>{approvedRequisitions.length}</span>
+          </div>
+
+          {approvedRequisitions.length ? (
+            <div style={{ display: 'grid', gap: '14px' }}>
+              {approvedRequisitions.slice(0, 5).map((req) => (
+                <div key={req.id} style={{ padding: '16px', borderRadius: '16px', backgroundColor: isDarkMode ? '#111827' : '#ffffff', border: `1px solid ${colors.border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+                    <div>
+                      <div style={{ fontWeight: '700', color: colors.text }}>{req.title}</div>
+                      <div style={{ color: colors.textSecondary, fontSize: '13px' }}>{req.req_id}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ color: '#10b981', fontWeight: '700' }}>{formatCurrency(req.amount)}</div>
+                      <div style={{ color: colors.textSecondary, fontSize: '12px' }}>{stageLabels[req.stage] || req.stage}</div>
+                    </div>
+                  </div>
+                  <div style={{ color: colors.textSecondary, fontSize: '12px' }}>Updated: {formatDateTime(req.updated_at)}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: colors.textSecondary, fontSize: '13px' }}>No approved requests yet.</p>
+          )}
+        </div>
+
+        <div style={{ backgroundColor: colors.cardBg, padding: '22px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div>
+              <h3 style={{ color: colors.text, marginBottom: '6px' }}>Pending Tasks</h3>
+              <p style={{ color: colors.textSecondary, fontSize: '13px' }}>Requests still awaiting approval</p>
+            </div>
+            <span style={{ backgroundColor: '#f59e0b', color: '#1a202c', padding: '6px 12px', borderRadius: '999px', fontSize: '12px' }}>{pendingRequisitions.length}</span>
+          </div>
+
+          {pendingRequisitions.length ? (
+            <div style={{ display: 'grid', gap: '14px' }}>
+              {pendingRequisitions.slice(0, 5).map((req) => (
+                <div key={req.id} style={{ padding: '16px', borderRadius: '16px', backgroundColor: isDarkMode ? '#111827' : '#ffffff', border: `1px solid ${colors.border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+                    <div>
+                      <div style={{ fontWeight: '700', color: colors.text }}>{req.title}</div>
+                      <div style={{ color: colors.textSecondary, fontSize: '13px' }}>{req.req_id}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ color: '#f59e0b', fontWeight: '700' }}>{stageLabels[req.stage] || req.stage}</div>
+                      <div style={{ color: colors.textSecondary, fontSize: '12px' }}>{formatCurrency(req.amount)}</div>
+                    </div>
+                  </div>
+                  <div style={{ color: colors.textSecondary, fontSize: '12px' }}>Updated: {formatDateTime(req.updated_at)}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: colors.textSecondary, fontSize: '13px' }}>No pending tasks found.</p>
+          )}
         </div>
       </div>
     </div>

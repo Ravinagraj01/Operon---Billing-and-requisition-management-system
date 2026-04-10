@@ -38,7 +38,7 @@ def create_requisition(
     # Check duplicate
     is_duplicate = check_duplicate(db, requisition.title, requisition.category, requisition.department)
     
-    # Create requisition in the submitted state immediately
+    # Create requisition in the dept_review state immediately
     new_requisition = Requisition(
         req_id=req_id,
         title=requisition.title,
@@ -47,7 +47,7 @@ def create_requisition(
         vendor_suggestion=requisition.vendor_suggestion,
         amount=requisition.amount,
         department=requisition.department,
-        stage="submitted",
+        stage="dept_review",
         is_duplicate_flag=is_duplicate,
         created_by_id=current_user.id
     )
@@ -162,11 +162,11 @@ def update_requisition(
             detail="Only creator can edit requisition"
         )
     
-    # Only allowed if stage is submitted
-    if requisition.stage != "submitted":
+    # Only allowed if stage is draft
+    if requisition.stage != "draft":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can only edit requisitions that are still submitted"
+            detail="Can only edit requisitions that are still in draft stage"
         )
     
     # Update fields
@@ -250,7 +250,7 @@ def submit_requisition(
         )
     
     # Update stage and SLA deadline
-    requisition.stage = "submitted"
+    requisition.stage = "dept_review"
     requisition.sla_deadline = datetime.utcnow() + timedelta(hours=48)
     
     # Notify dept_head users in same department

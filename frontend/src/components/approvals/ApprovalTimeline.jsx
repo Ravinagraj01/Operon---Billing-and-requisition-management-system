@@ -21,10 +21,11 @@ const ApprovalTimeline = ({ approvals, currentStage }) => {
       return approval.action === 'approved' ? 'completed' : 
              approval.action === 'rejected' ? 'rejected' : 'returned'
     }
-    
+
     const stageIndex = stages.findIndex(s => s.key === stage)
     const currentIndex = stages.findIndex(s => s.key === currentStage)
-    
+
+    if (currentStage === 'approved') return 'completed'
     if (stageIndex === currentIndex) return 'active'
     if (stageIndex < currentIndex) return 'completed'
     return 'pending'

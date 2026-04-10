@@ -33,7 +33,7 @@ class Requisition(Base):
     amount = Column(Float, nullable=False)
     department = Column(String, nullable=False)
     priority_score = Column(Integer, default=5)
-    stage = Column(String, default="draft")  # draft, submitted, dept_review, finance_review, procurement, approved, rejected
+    stage = Column(String, default="draft")  # draft, dept_review, finance_review, procurement, approved, rejected
     is_duplicate_flag = Column(Boolean, default=False)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

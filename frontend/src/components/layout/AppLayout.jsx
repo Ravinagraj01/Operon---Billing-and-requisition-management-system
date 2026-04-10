@@ -20,7 +20,7 @@ const AppLayout = ({ children }) => {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-slate-900'}`}>
       <Sidebar />
       <div className="ml-60">
         <Navbar title={getPageTitle()} />

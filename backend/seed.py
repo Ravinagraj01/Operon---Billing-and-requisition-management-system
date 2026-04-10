@@ -107,7 +107,7 @@ def seed_data():
                 amount=200000.0,
                 department="Marketing",
                 priority_score=8,
-                stage="submitted",
+                stage="dept_review",
                 created_by_id=users[3].id,  # John Employee
                 sla_deadline=datetime.utcnow() + timedelta(hours=48)
             ),

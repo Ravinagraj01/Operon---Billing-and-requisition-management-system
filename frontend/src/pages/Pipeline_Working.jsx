@@ -7,8 +7,8 @@ import api from '../api/axios'
 const PipelineWorking = () => {
   const [requisitions, setRequisitions] = useState([])
   const [filteredRequisitions, setFilteredRequisitions] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
   const [search, setSearch] = useState('')
-  const [priorityFilter, setPriorityFilter] = useState('all')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -35,11 +35,9 @@ const PipelineWorking = () => {
     inputBorder: '#d1d5db'
   }
 
-  const stages = ['draft', 'submitted', 'dept_review', 'finance_review', 'procurement', 'approved', 'rejected']
+  const stages = ['dept_review', 'finance_review', 'procurement', 'approved', 'rejected']
 
   const stageMeta = {
-    draft: { label: 'Draft', color: '#9ca3af', emoji: '📝', description: 'Initial request created.' },
-    submitted: { label: 'Submitted', color: '#3b82f6', emoji: '📤', description: 'Awaiting department review.' },
     dept_review: { label: 'Dept Review', color: '#f59e0b', emoji: '👤', description: 'Dept Head approval pending.' },
     finance_review: { label: 'Finance Review', color: '#8b5cf6', emoji: '💰', description: 'Finance validation stage.' },
     procurement: { label: 'Procurement', color: '#ec4899', emoji: '🧾', description: 'Final procurement approval.' },
@@ -53,13 +51,6 @@ const PipelineWorking = () => {
       currency: 'INR',
       maximumFractionDigits: 0
     }).format(value)
-  }
-
-  const getPriorityColor = (score) => {
-    if (score >= 8) return '#ef4444'
-    if (score >= 6) return '#f59e0b'
-    if (score >= 4) return '#3b82f6'
-    return '#10b981'
   }
 
   const getSlaStatus = (deadline) => {
@@ -96,17 +87,14 @@ const PipelineWorking = () => {
       const matchesSearch = normalizedSearch
         ? req.title.toLowerCase().includes(normalizedSearch) || req.req_id.toLowerCase().includes(normalizedSearch)
         : true
-      const matchesPriority = priorityFilter === 'all'
-        ? true
-        : req.priority_score >= Number(priorityFilter)
       const matchesDepartment = departmentFilter === 'all'
         ? true
         : req.department === departmentFilter
-      return matchesSearch && matchesPriority && matchesDepartment
+      return matchesSearch && matchesDepartment
     })
 
     setFilteredRequisitions(result)
-  }, [requisitions, search, priorityFilter, departmentFilter])
+  }, [requisitions, search, departmentFilter])
 
   const departments = useMemo(() => {
     const unique = Array.from(new Set(requisitions.map((req) => req.department).filter(Boolean)))
@@ -155,20 +143,17 @@ const PipelineWorking = () => {
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by title or ID" style={{ flex: '1 1 260px', minWidth: '220px', padding: '14px 16px', borderRadius: '14px', border: `1px solid ${colors.inputBorder}`, backgroundColor: colors.inputBg, color: colors.text }} />
-        <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)} style={{ padding: '14px 16px', borderRadius: '14px', border: `1px solid ${colors.inputBorder}`, backgroundColor: colors.inputBg, color: colors.text, minWidth: '180px' }}>
-          <option value="all">All priorities</option>
-          <option value="8">Priority 8+</option>
-          <option value="6">Priority 6+</option>
-          <option value="4">Priority 4+</option>
-        </select>
+        <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search by title or ID" style={{ flex: '1 1 260px', minWidth: '220px', padding: '14px 16px', borderRadius: '14px', border: `1px solid ${colors.inputBorder}`, backgroundColor: colors.inputBg, color: colors.text }} />
+        <button onClick={() => setSearch(searchQuery)} style={{ backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', minWidth: '140px' }}>
+          Search
+        </button>
         <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} style={{ padding: '14px 16px', borderRadius: '14px', border: `1px solid ${colors.inputBorder}`, backgroundColor: colors.inputBg, color: colors.text, minWidth: '180px' }}>
           <option value="all">All departments</option>
           {departments.map((dept) => (
             <option key={dept} value={dept}>{dept}</option>
           ))}
         </select>
-        <button onClick={fetchRequisitions} style={{ backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', minWidth: '140px' }}>
+        <button onClick={fetchRequisitions} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '14px', padding: '14px 20px', cursor: 'pointer', minWidth: '140px' }}>
           Refresh
         </button>
       </div>
@@ -210,9 +195,6 @@ const PipelineWorking = () => {
                         <h3 style={{ fontSize: '16px', fontWeight: '700', color: colors.text, marginBottom: '6px' }}>{req.title}</h3>
                         <p style={{ color: colors.textSecondary, fontSize: '13px' }}>{req.req_id}</p>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: '700', color: getPriorityColor(req.priority_score), backgroundColor: `${getPriorityColor(req.priority_score)}20`, padding: '6px 10px', borderRadius: '999px' }}>
-                        P{req.priority_score}
-                      </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', color: colors.textSecondary, fontSize: '13px' }}>
                       <span>{formatCurrency(req.amount)}</span>

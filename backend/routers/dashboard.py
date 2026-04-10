@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from database import get_db
 from models import User, Requisition, Approval
-from schemas import DashboardStats
+from schemas import DashboardStats, DashboardRequisitionSummary
 from auth import get_current_active_user
 from datetime import datetime
 
@@ -37,7 +37,7 @@ def get_dashboard_stats(
     # Pending approvals (requisitions waiting for current user's role)
     if current_user.role in ["dept_head", "finance", "admin"]:
         stage_map = {
-            "dept_head": ["submitted", "dept_review"],
+            "dept_head": ["dept_review"],
             "finance": ["finance_review"],
             "admin": ["procurement"]
         }
@@ -103,6 +103,20 @@ def get_dashboard_stats(
     for stage, count in stage_counts_query:
         stage_counts[stage] = count
     
+    latest_requisition = None
+    latest_req = base_query.order_by(Requisition.updated_at.desc()).first()
+    if latest_req:
+        latest_requisition = {
+            'id': latest_req.id,
+            'req_id': latest_req.req_id,
+            'title': latest_req.title,
+            'stage': latest_req.stage,
+            'amount': float(latest_req.amount),
+            'department': latest_req.department,
+            'created_at': latest_req.created_at,
+            'updated_at': latest_req.updated_at
+        }
+
     # SLA breached
     now = datetime.utcnow()
     sla_breached = base_query.filter(
@@ -120,5 +134,6 @@ def get_dashboard_stats(
         avg_approval_time_hours=round(avg_approval_time_hours, 2),
         spend_by_department=spend_by_department,
         stage_counts=stage_counts,
-        sla_breached=sla_breached
+        sla_breached=sla_breached,
+        latest_requisition=latest_requisition
     )
