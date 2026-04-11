@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useToast } from '../components/shared/Toast'
 import LoadingSpinner from '../components/shared/LoadingSpinner'
 import RequisitionCard from '../components/requisitions/RequisitionCard'
+import AIAssistant from '../components/requisitions/AIAssistant'
 import { formatCurrency } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
@@ -125,17 +126,54 @@ const NewRequisition = () => {
     return deadline.toLocaleString()
   }
 
+  const handleAIFill = (aiData) => {
+    setFormData(prev => ({
+      ...prev,
+      title: aiData.title || prev.title,
+      description: aiData.description || prev.description,
+      category: aiData.category || prev.category,
+      vendor_suggestion: aiData.vendor_suggestion || prev.vendor_suggestion,
+      amount: aiData.amount ? String(aiData.amount) : prev.amount,
+    }))
+
+    // Clear validation errors for filled fields
+    setErrors(prev => ({
+      ...prev,
+      title: "",
+      description: "",
+      category: "",
+      amount: aiData.amount ? "" : prev.amount,
+    }))
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6">
+
       <div>
-        <h1 className="text-2xl font-bold text-white mb-2">New Requisition</h1>
-        <p className="text-gray-400">Create a new purchase requisition</p>
+        <h1 className="text-2xl font-bold text-white">
+          New Requisition
+        </h1>
+        <p className="text-gray-400 text-sm mt-1">
+          Use the AI assistant to fill the form automatically,
+          or fill it manually below
+        </p>
+      </div>
+
+      {/* AI Assistant — sits above the form */}
+      <AIAssistant onFillForm={handleAIFill} />
+
+      {/* Visual divider */}
+      <div className="flex items-center gap-4">
+        <div className="flex-1 border-t border-white/8" />
+        <span className="text-gray-600 text-xs uppercase tracking-widest">
+          Form
+        </span>
+        <div className="flex-1 border-t border-white/8" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
-        <div className="glass-panel p-6">
+        <div id="requisition-form" className="glass-panel p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>

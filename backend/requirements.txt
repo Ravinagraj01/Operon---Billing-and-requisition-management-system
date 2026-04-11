@@ -5,3 +5,5 @@ python-jose[cryptography]
 bcrypt
 python-multipart
 pydantic[email]
+openai>=1.0.0
+python-dotenv
