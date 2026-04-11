@@ -10,6 +10,8 @@ client = AsyncOpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
+MODEL_NAME = "llama-3.1-8b-instant"
+
 # Valid categories that match the frontend form exactly
 VALID_CATEGORIES = [
     "IT", "HR", "Finance", "Legal",
@@ -373,3 +375,278 @@ async def process_requisition_input(user_input: str) -> dict:
     cleaned = validate_and_clean_response(parsed)
 
     return cleaned
+
+
+# ─────────────────────────────────────────────────────────────────
+# FEATURE 2 — DEPT HEAD: APPROVAL DECISION ASSISTANT
+# ─────────────────────────────────────────────────────────────────
+
+def build_approval_system_prompt():
+    return """
+You are a senior procurement advisor for an enterprise
+requisition management system called Procura.
+
+Your job is to help department heads make fast, informed
+approval decisions on requisitions submitted by their team.
+
+You will be given details about a requisition and historical
+context about similar past requests. Analyse the information
+and provide a clear recommendation.
+
+You must always return a valid JSON object and nothing else.
+No explanation. No markdown. No code blocks. Just raw JSON.
+
+The JSON must have exactly these fields:
+{
+  "recommendation": "approve or review_carefully",
+  "recommendation_label": "Approve" or "Review Carefully",
+  "confidence": "high or medium or low",
+  "reason": "string — 2 to 3 sentences explaining why you recommend this action based on the data provided",
+  "risk_factors": ["array of short strings — each a specific risk or concern, empty array if none"],
+  "positive_factors": ["array of short strings — each a positive signal, empty array if none"],
+  "suggested_comment": "string — a professional comment the dept head can use when approving or returning the requisition. Should be 1 to 2 sentences, formal tone"
+}
+
+Rules:
+1. Recommend approve if: amount is reasonable for the category, no strong red flags, aligns with typical department spend
+2. Recommend review_carefully if: amount is significantly higher than historical average, vendor is unverified, description is vague, or amount exceeds typical thresholds
+3. The suggested comment must be usable as-is — professional, specific, not generic
+4. Risk factors and positive factors must each be short — under 10 words each
+5. Return raw JSON only — no extra text
+"""
+
+
+def build_approval_context(
+    requisition: dict,
+    similar_requisitions: list,
+    dept_stats: dict
+) -> str:
+    similar_text = ""
+    if similar_requisitions:
+        similar_text = "\n".join([
+            f"- {r['title']}: INR {r['amount']:,.0f} ({r['stage']})"
+            for r in similar_requisitions[:5]
+        ])
+    else:
+        similar_text = "No similar requisitions found in the past 90 days"
+
+    return f"""
+Requisition Details:
+- ID: {requisition['req_id']}
+- Title: {requisition['title']}
+- Description: {requisition.get('description') or 'Not provided'}
+- Category: {requisition['category']}
+- Amount: INR {requisition['amount']:,.0f}
+- Department: {requisition['department']}
+- Vendor Suggested: {requisition.get('vendor_suggestion') or 'None specified'}
+- Priority Score: {requisition['priority_score']} out of 10
+- Submitted by: {requisition['created_by']}
+
+Similar Requisitions in This Department (Last 90 Days):
+{similar_text}
+
+Department Statistics:
+- Total approved spend this quarter: INR {dept_stats.get('quarterly_approved', 0):,.0f}
+- Average requisition amount in this department: INR {dept_stats.get('avg_amount', 0):,.0f}
+- Total pending requisitions in department: {dept_stats.get('pending_count', 0)}
+- Category average amount for {requisition['category']}: INR {dept_stats.get('category_avg', 0):,.0f}
+
+Based on this information, provide your approval recommendation.
+"""
+
+
+async def process_approval_recommendation(
+    requisition: dict,
+    similar_requisitions: list,
+    dept_stats: dict
+) -> dict:
+    """
+    Generates an approval recommendation for dept heads.
+    Takes requisition data and historical context,
+    returns structured recommendation.
+    """
+    system_prompt = build_approval_system_prompt()
+    context = build_approval_context(
+        requisition, similar_requisitions, dept_stats
+    )
+
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": context}
+        ],
+        temperature=0.2,
+        max_tokens=700,
+        response_format={"type": "json_object"}
+    )
+
+    raw_text = response.choices[0].message.content
+
+    if not raw_text:
+        raise ValueError("Model returned empty response")
+
+    parsed = extract_json_from_response(raw_text)
+
+    # Validate recommendation field
+    if parsed.get("recommendation") not in ["approve", "review_carefully"]:
+        parsed["recommendation"] = "review_carefully"
+        parsed["recommendation_label"] = "Review Carefully"
+
+    # Ensure arrays exist
+    if not isinstance(parsed.get("risk_factors"), list):
+        parsed["risk_factors"] = []
+    if not isinstance(parsed.get("positive_factors"), list):
+        parsed["positive_factors"] = []
+
+    # Validate confidence
+    if parsed.get("confidence") not in ["high", "medium", "low"]:
+        parsed["confidence"] = "medium"
+
+    return parsed
+
+
+# ─────────────────────────────────────────────────────────────────
+# FEATURE 3 — FINANCE: BUDGET IMPACT ANALYSER
+# ─────────────────────────────────────────────────────────────────
+
+def build_finance_system_prompt():
+    return """
+You are a senior financial analyst for an enterprise
+requisition management system called Procura.
+
+Your job is to analyse the budget impact of a requisition
+and help the finance team make a fast, informed decision.
+
+You will be given the requisition details, department spend
+history, and category averages. Analyse and provide a
+structured budget impact report.
+
+You must always return a valid JSON object and nothing else.
+No explanation. No markdown. No code blocks. Just raw JSON.
+
+The JSON must have exactly these fields:
+{
+  "risk_level": "low or medium or high",
+  "risk_label": "Low Risk" or "Medium Risk" or "High Risk",
+  "summary": "string — 2 to 3 sentences summarising the budget impact in plain English for a finance reviewer",
+  "historical_context": "string — 1 to 2 sentences comparing this request to historical data",
+  "budget_impact_percent": number — what percentage of quarterly budget this request represents, rounded to 1 decimal,
+  "is_above_category_average": true or false,
+  "deviation_percent": number — how many percent above or below the category average this amount is, positive means above,
+  "flags": ["array of short specific financial concerns, empty array if none"],
+  "suggested_finance_note": "string — a professional note the finance reviewer can attach to their approval. 1 to 2 sentences, formal tone, mentions key financial considerations"
+}
+
+Risk level rules:
+- low: amount is within or below category average, department has budget headroom, no unusual patterns
+- medium: amount is 20 to 50 percent above category average, or department spend is trending high
+- high: amount is more than 50 percent above category average, or department is near budget limit
+
+Rules:
+1. Be precise with numbers — use the data provided
+2. Flags must be specific — not generic statements like 'high amount'
+3. Suggested finance note must sound like it was written by a CFO
+4. Return raw JSON only
+"""
+
+
+def build_finance_context(
+    requisition: dict,
+    dept_spend_history: list,
+    category_stats: dict,
+    quarterly_budget: dict
+) -> str:
+    spend_history_text = ""
+    if dept_spend_history:
+        spend_history_text = "\n".join([
+            f"- {item['month']}: INR {item['total_amount']:,.0f} "
+            f"({item['req_count']} requisitions)"
+            for item in dept_spend_history
+        ])
+    else:
+        spend_history_text = "No historical spend data available"
+
+    return f"""
+Requisition Details:
+- ID: {requisition['req_id']}
+- Title: {requisition['title']}
+- Category: {requisition['category']}
+- Amount Requested: INR {requisition['amount']:,.0f}
+- Department: {requisition['department']}
+- Vendor: {requisition.get('vendor_suggestion') or 'Not specified'}
+- Description: {requisition.get('description') or 'Not provided'}
+
+Department Monthly Spend History (Last 6 Months):
+{spend_history_text}
+
+Category Statistics for {requisition['category']}:
+- Average approved amount: INR {category_stats.get('avg_amount', 0):,.0f}
+- Highest approved amount: INR {category_stats.get('max_amount', 0):,.0f}
+- Lowest approved amount: INR {category_stats.get('min_amount', 0):,.0f}
+- Total approved this quarter: INR {category_stats.get('quarterly_total', 0):,.0f}
+- Number of approvals this quarter: {category_stats.get('quarterly_count', 0)}
+
+Department Budget Summary:
+- Total approved spend this quarter: INR {quarterly_budget.get('approved_spend', 0):,.0f}
+- Total pending spend (if all approved): INR {quarterly_budget.get('pending_spend', 0):,.0f}
+- Estimated quarterly budget (based on historical avg): INR {quarterly_budget.get('estimated_budget', 0):,.0f}
+
+Provide a full budget impact analysis for the finance reviewer.
+"""
+
+
+async def process_budget_impact(
+    requisition: dict,
+    dept_spend_history: list,
+    category_stats: dict,
+    quarterly_budget: dict
+) -> dict:
+    """
+    Generates a budget impact analysis for finance team.
+    Takes requisition + financial context,
+    returns structured analysis.
+    """
+    system_prompt = build_finance_system_prompt()
+    context = build_finance_context(
+        requisition,
+        dept_spend_history,
+        category_stats,
+        quarterly_budget
+    )
+
+    response = await client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": context}
+        ],
+        temperature=0.2,
+        max_tokens=700,
+        response_format={"type": "json_object"}
+    )
+
+    raw_text = response.choices[0].message.content
+
+    if not raw_text:
+        raise ValueError("Model returned empty response")
+
+    parsed = extract_json_from_response(raw_text)
+
+    # Validate risk level
+    if parsed.get("risk_level") not in ["low", "medium", "high"]:
+        parsed["risk_level"] = "medium"
+        parsed["risk_label"] = "Medium Risk"
+
+    # Ensure arrays exist
+    if not isinstance(parsed.get("flags"), list):
+        parsed["flags"] = []
+
+    # Ensure numbers are valid
+    for field in ["budget_impact_percent", "deviation_percent"]:
+        try:
+            parsed[field] = round(float(parsed.get(field, 0)), 1)
+        except (ValueError, TypeError):
+            parsed[field] = 0.0
+
+    return parsed

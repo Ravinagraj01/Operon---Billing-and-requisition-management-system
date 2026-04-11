@@ -10,6 +10,8 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useToast } from '../components/shared/Toast'
+import ApprovalAIRecommendation from "../components/approvals/ApprovalAIRecommendation"
+import BudgetImpactAnalyser from "../components/approvals/BudgetImpactAnalyser"
 
 const RequisitionDetail = () => {
   const { id } = useParams()
@@ -25,6 +27,16 @@ const RequisitionDetail = () => {
   const [comment, setComment] = useState('')
   const [actionComment, setActionComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Handler — fills the comment box with the AI suggested comment
+  const handleUseSuggestedComment = (comment) => {
+    setActionComment(comment)
+    // Scroll to the action panel so user sees it filled
+    document.getElementById("action-panel")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    })
+  }
 
   const fetchRequisition = async () => {
     try {
@@ -331,9 +343,27 @@ const RequisitionDetail = () => {
         {/* Right Column - Actions */}
         <div className="space-y-6">
           {/* Action Panel */}
-          <div className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
+          <div id="action-panel" className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Actions</h3>
-            
+
+            {/* AI Recommendation — shown to dept_head when stage is submitted or dept_review */}
+            {(user.role === "dept_head" || user.role === "admin") &&
+             (requisition.stage === "submitted" || requisition.stage === "dept_review") && (
+                <ApprovalAIRecommendation
+                    requisitionId={requisition.id}
+                    onUseSuggestedComment={handleUseSuggestedComment}
+                />
+            )}
+
+            {/* AI Budget Analyser — shown to finance when stage is finance_review */}
+            {(user.role === "finance" || user.role === "admin") &&
+             (requisition.stage === "finance_review" || requisition.stage === "procurement") && (
+                <BudgetImpactAnalyser
+                    requisitionId={requisition.id}
+                    onUseSuggestedNote={handleUseSuggestedComment}
+                />
+            )}
+
             {canAct ? (
               <div className="space-y-4">
                 <div>
