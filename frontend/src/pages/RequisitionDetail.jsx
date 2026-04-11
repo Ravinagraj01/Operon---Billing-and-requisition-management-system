@@ -237,7 +237,7 @@ const RequisitionDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Column - Tabs */}
         <div className="lg:col-span-2 space-y-6">
           {/* Tab Navigation */}
@@ -341,7 +341,7 @@ const RequisitionDetail = () => {
         </div>
 
         {/* Right Column - Actions */}
-        <div className="space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Action Panel */}
           <div id="action-panel" className={`p-6 rounded-lg ${isDarkMode ? 'glass-panel' : 'bg-white border border-gray-200'}`}>
             <h3 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Actions</h3>

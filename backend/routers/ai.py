@@ -254,7 +254,6 @@ async def budget_impact_analysis(
 
     # Build department monthly spend history (last 6 months)
     from sqlalchemy import func, extract
-    import pandas as pd
 
     six_months_ago = datetime.utcnow() - timedelta(days=180)
 
