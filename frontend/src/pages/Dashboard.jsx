@@ -8,6 +8,7 @@ import ErrorMessage from '../components/shared/ErrorMessage'
 import { formatCurrency, getStageLabel, getStageBadgeColor, formatDate } from '../utils/helpers'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import BottleneckDetector from "../components/dashboard/BottleneckDetector"
 
 const Dashboard = () => {
   console.log('📊 Dashboard Component: MOUNTING!', new Date().toISOString())
@@ -119,6 +120,9 @@ const Dashboard = () => {
           borderColor="border-purple-500"
         />
       </div>
+
+      {/* AI Bottleneck Detector — auto-loads, shows only for admin */}
+      <BottleneckDetector />
 
       {/* SLA Alert */}
       <SLAAlert slaBreached={stats?.sla_breached || tempStats.sla_breached} />

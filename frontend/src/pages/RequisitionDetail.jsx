@@ -361,6 +361,7 @@ const RequisitionDetail = () => {
                 <BudgetImpactAnalyser
                     requisitionId={requisition.id}
                     onUseSuggestedNote={handleUseSuggestedComment}
+                    userRole={user.role}
                 />
             )}
 

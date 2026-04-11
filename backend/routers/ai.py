@@ -351,3 +351,157 @@ async def budget_impact_analysis(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="AI analysis unavailable. Please review manually."
         )
+
+
+# ─────────────────────────────────────────────────────────────────
+# ENDPOINT 4 — ADMIN BOTTLENECK DETECTOR
+# ─────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/assistant/bottleneck-detection",
+    summary="AI Bottleneck Detector",
+    description="Analyses live pipeline and returns bottleneck report for admin"
+)
+async def bottleneck_detection(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Admin only
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can access bottleneck detection"
+        )
+
+    from models import Requisition
+    from sqlalchemy import func
+    from datetime import datetime, timedelta
+
+    now = datetime.utcnow()
+
+    # Active stages — exclude draft, approved, rejected
+    active_stages = [
+        "submitted", "dept_review",
+        "finance_review", "procurement"
+    ]
+
+    # Fetch all active requisitions
+    active_reqs = db.query(Requisition).filter(
+        Requisition.stage.in_(active_stages)
+    ).all()
+
+    # Build stage breakdown
+    stage_breakdown = {}
+    for stage in active_stages:
+        stage_reqs = [r for r in active_reqs if r.stage == stage]
+        total_value = sum(r.amount for r in stage_reqs)
+
+        # Calculate average age in hours for this stage
+        ages = []
+        for r in stage_reqs:
+            age = (now - r.updated_at).total_seconds() / 3600
+            ages.append(age)
+        avg_age = sum(ages) / len(ages) if ages else 0
+
+        stage_breakdown[stage] = {
+            "count": len(stage_reqs),
+            "total_value": total_value,
+            "avg_age_hours": avg_age
+        }
+
+    # Find SLA breaches
+    sla_breaches = []
+    for r in active_reqs:
+        if r.sla_deadline and r.sla_deadline < now:
+            days_overdue = (now - r.sla_deadline).total_seconds() / 86400
+            sla_breaches.append({
+                "req_id": r.req_id,
+                "title": r.title,
+                "department": r.department,
+                "stage": r.stage,
+                "amount": r.amount,
+                "days_overdue": round(days_overdue, 1)
+            })
+
+    # Department congestion
+    dept_congestion = {}
+    for r in active_reqs:
+        dept = r.department
+        if dept not in dept_congestion:
+            dept_congestion[dept] = {
+                "pending_count": 0,
+                "pending_value": 0
+            }
+        dept_congestion[dept]["pending_count"] += 1
+        dept_congestion[dept]["pending_value"] += r.amount
+
+    # Oldest pending requisitions
+    oldest_pending = sorted(
+        active_reqs,
+        key=lambda r: r.created_at
+    )
+    oldest_list = [{
+        "req_id": r.req_id,
+        "title": r.title,
+        "stage": r.stage,
+        "amount": r.amount,
+        "age_days": (now - r.created_at).total_seconds() / 86400
+    } for r in oldest_pending[:5]]
+
+    # Items pending more than 48 hours
+    items_over_48h = sum(
+        1 for r in active_reqs
+        if (now - r.updated_at).total_seconds() > 172800
+    )
+
+    # Average time in current stage
+    all_stage_hours = [
+        (now - r.updated_at).total_seconds() / 3600
+        for r in active_reqs
+    ]
+    avg_stage_hours = (
+        sum(all_stage_hours) / len(all_stage_hours)
+        if all_stage_hours else 0
+    )
+
+    # High value pending
+    high_value = [r for r in active_reqs if r.amount > 100000]
+
+    # Build full pipeline data dict
+    pipeline_data = {
+        "generated_at": now.strftime("%Y-%m-%d %H:%M UTC"),
+        "total_active": len(active_reqs),
+        "total_pipeline_value": sum(r.amount for r in active_reqs),
+        "total_sla_breaches": len(sla_breaches),
+        "items_over_48h": items_over_48h,
+        "avg_stage_hours": avg_stage_hours,
+        "stage_breakdown": stage_breakdown,
+        "sla_breaches": sla_breaches,
+        "dept_congestion": dept_congestion,
+        "oldest_pending": oldest_list,
+        "high_value_pending_count": len(high_value),
+        "high_value_pending_value": sum(r.amount for r in high_value)
+    }
+
+    try:
+        result = process_bottleneck_detection(pipeline_data)
+        # Attach raw pipeline data so frontend can use it
+        result["pipeline_data"] = {
+            "total_active": pipeline_data["total_active"],
+            "total_sla_breaches": pipeline_data["total_sla_breaches"],
+            "total_pipeline_value": pipeline_data["total_pipeline_value"],
+            "generated_at": pipeline_data["generated_at"]
+        }
+        return result
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        print(f"Bottleneck detection error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Bottleneck detection unavailable."
+        )

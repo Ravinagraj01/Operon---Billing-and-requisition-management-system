@@ -85,13 +85,38 @@ function CopyButton({ text }) {
 // ── Main Component ────────────────────────────────────────────────
 export default function BudgetImpactAnalyser({
     requisitionId,
-    onUseSuggestedNote
+    onUseSuggestedNote,
+    userRole = "finance"  // Default to finance, but will be passed
 }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const [result, setResult] = useState(null)
     const [collapsed, setCollapsed] = useState(false)
     const [generated, setGenerated] = useState(false)
+
+    // Role-based configuration
+    const isAdmin = userRole === "admin"
+    const config = {
+        finance: {
+            title: "AI Budget Impact Analyser",
+            description: "Analyses spend history and category data to assess financial risk",
+            buttonText: "Run Budget Impact Analysis",
+            actionText: "Use Suggested Note",
+            iconColor: "text-blue-400",
+            bgColor: "bg-blue-500/10",
+            borderColor: "border-blue-500/20"
+        },
+        admin: {
+            title: "Admin Budget Oversight",
+            description: "Comprehensive budget analysis for administrative review and intervention",
+            buttonText: "Run Admin Budget Review",
+            actionText: "Apply Admin Override",
+            iconColor: "text-purple-400",
+            bgColor: "bg-purple-500/10",
+            borderColor: "border-purple-500/20"
+        }
+    }
+    const uiConfig = config[userRole] || config.finance
 
     const fetchAnalysis = async () => {
         setLoading(true)
@@ -119,23 +144,22 @@ export default function BudgetImpactAnalyser({
     }
 
     return (
-        <div className="bg-gray-900 border border-blue-500/20
-                        rounded-xl overflow-hidden">
+        <div className={`bg-gray-900 border ${uiConfig.borderColor}
+                        rounded-xl overflow-hidden`}>
 
             {/* ── Header ─────────────────────────────────────────── */}
             <div className="flex items-center justify-between px-5 py-4
                             border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-blue-500/10 rounded-lg">
-                        <BarChart2 size={15} className="text-blue-400" />
+                    <div className={`p-1.5 ${uiConfig.bgColor} rounded-lg`}>
+                        <BarChart2 size={15} className={uiConfig.iconColor} />
                     </div>
                     <div>
                         <div className="text-white font-semibold text-sm">
-                            AI Budget Impact Analyser
+                            {uiConfig.title}
                         </div>
                         <div className="text-gray-400 text-xs mt-0.5">
-                            Analyses spend history and category data
-                            to assess financial risk
+                            {uiConfig.description}
                         </div>
                     </div>
                 </div>
@@ -168,7 +192,7 @@ export default function BudgetImpactAnalyser({
                                    justify-center"
                     >
                         <BarChart2 size={15} />
-                        Run Budget Impact Analysis
+                        {uiConfig.buttonText}
                     </button>
                 )}
 
@@ -322,7 +346,7 @@ export default function BudgetImpactAnalyser({
                                                    hover:border-blue-500/40
                                                    rounded transition-colors"
                                     >
-                                        Use This
+                                        {uiConfig.actionText}
                                     </button>
                                 </div>
                             </div>

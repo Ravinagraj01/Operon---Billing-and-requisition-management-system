@@ -650,3 +650,205 @@ async def process_budget_impact(
             parsed[field] = 0.0
 
     return parsed
+
+
+# ─────────────────────────────────────────────────────────────────
+# FEATURE 4 — ADMIN: BOTTLENECK DETECTOR
+# ─────────────────────────────────────────────────────────────────
+
+def build_bottleneck_system_prompt():
+    return """
+You are a senior operations analyst for an enterprise
+requisition management system called Procura.
+
+Your job is to analyse the current state of the requisition
+pipeline and identify bottlenecks — places where requests
+are getting stuck, delayed, or accumulating.
+
+You will be given live pipeline data including stage counts,
+SLA breaches, department breakdowns, and timing information.
+
+You must always return a valid JSON object and nothing else.
+No explanation. No markdown. No code blocks. Just raw JSON.
+
+The JSON must have exactly this structure:
+{
+  "overall_health": "healthy or warning or critical",
+  "health_label": "Pipeline Healthy" or "Attention Needed" or "Critical Issues Detected",
+  "health_reason": "string — one sentence summarising the overall pipeline health",
+  "bottlenecks": [
+    {
+      "id": "unique short string like bottleneck_1",
+      "severity": "low or medium or high",
+      "title": "string — short title of the bottleneck, max 60 characters",
+      "description": "string — 2 sentences explaining what the bottleneck is and why it is happening",
+      "affected_count": number — how many requisitions are affected,
+      "affected_value": number — total INR value of affected requisitions,
+      "likely_cause": "string — 1 sentence on the most probable root cause",
+      "recommended_action": "string — 1 specific actionable step the admin should take right now",
+      "stage": "string — which pipeline stage this bottleneck is in"
+    }
+  ],
+  "quick_wins": ["array of short strings — small immediate actions that would improve pipeline flow, max 3 items"],
+  "summary_stats": {
+    "total_stuck": number — total requisitions currently stuck or delayed,
+    "total_stuck_value": number — total INR value of stuck requisitions,
+    "most_congested_stage": "string — name of the stage with most items",
+    "oldest_pending_days": number — age in days of the oldest pending requisition
+  }
+}
+
+Rules:
+1. Only report real bottlenecks — do not invent problems that are not in the data
+2. If the pipeline is healthy with no issues return an empty bottlenecks array and healthy overall_health
+3. Severity rules: high if SLA breached or more than 5 items stuck in one stage, medium if 3 to 5 items or close to SLA, low if 1 to 2 items with minor delays
+4. Recommended action must be specific and immediately actionable — not generic advice
+5. Quick wins must be concrete and doable in under 10 minutes
+6. Return raw JSON only — no extra text whatsoever
+"""
+
+
+def build_bottleneck_context(pipeline_data: dict) -> str:
+    """
+    Converts live pipeline data from the database
+    into a structured text context for the AI model.
+    """
+
+    # Format stage breakdown
+    stage_lines = "\n".join([
+        f"  - {stage}: {info['count']} requisitions "
+        f"(total value: INR {info['total_value']:,.0f}, "
+        f"avg age: {info['avg_age_hours']:.1f} hours)"
+        for stage, info in pipeline_data["stage_breakdown"].items()
+        if info["count"] > 0
+    ])
+
+    # Format SLA breaches
+    if pipeline_data["sla_breaches"]:
+        sla_lines = "\n".join([
+            f"  - {b['req_id']}: {b['title']} | "
+            f"Department: {b['department']} | "
+            f"Stage: {b['stage']} | "
+            f"Amount: INR {b['amount']:,.0f} | "
+            f"Days overdue: {b['days_overdue']:.1f}"
+            for b in pipeline_data["sla_breaches"]
+        ])
+    else:
+        sla_lines = "  None — all requisitions within SLA window"
+
+    # Format department congestion
+    dept_lines = "\n".join([
+        f"  - {dept}: {info['pending_count']} pending "
+        f"(INR {info['pending_value']:,.0f})"
+        for dept, info in pipeline_data["dept_congestion"].items()
+        if info["pending_count"] > 0
+    ])
+
+    # Format oldest pending items
+    if pipeline_data["oldest_pending"]:
+        oldest_lines = "\n".join([
+            f"  - {item['req_id']}: {item['title']} | "
+            f"Stage: {item['stage']} | "
+            f"Age: {item['age_days']:.1f} days | "
+            f"Amount: INR {item['amount']:,.0f}"
+            for item in pipeline_data["oldest_pending"][:5]
+        ])
+    else:
+        oldest_lines = "  No pending items"
+
+    return f"""
+Current Pipeline State — Live Data
+Generated at: {pipeline_data['generated_at']}
+
+OVERALL PIPELINE SUMMARY:
+- Total active requisitions (non-draft, non-closed): {pipeline_data['total_active']}
+- Total pipeline value: INR {pipeline_data['total_pipeline_value']:,.0f}
+- Total SLA breaches: {pipeline_data['total_sla_breaches']}
+- Total items pending more than 48 hours: {pipeline_data['items_over_48h']}
+- Average time in current stage: {pipeline_data['avg_stage_hours']:.1f} hours
+
+STAGE BREAKDOWN:
+{stage_lines if stage_lines else "  No active items in pipeline"}
+
+SLA BREACHES (past 48-hour window):
+{sla_lines}
+
+DEPARTMENT CONGESTION:
+{dept_lines if dept_lines else "  No department congestion detected"}
+
+OLDEST PENDING REQUISITIONS:
+{oldest_lines}
+
+HIGH VALUE ITEMS PENDING (above INR 100,000):
+- Count: {pipeline_data['high_value_pending_count']}
+- Total value: INR {pipeline_data['high_value_pending_value']:,.0f}
+
+Analyse this pipeline data and identify all bottlenecks.
+Return only the JSON response.
+"""
+
+
+def process_bottleneck_detection(pipeline_data: dict) -> dict:
+    """
+    Main function for bottleneck detection.
+    Takes live pipeline data dict,
+    calls Groq, returns structured bottleneck analysis.
+    """
+    system_prompt = build_bottleneck_system_prompt()
+    context = build_bottleneck_context(pipeline_data)
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": context}
+        ],
+        temperature=0.2,
+        max_tokens=1200,
+        response_format={"type": "json_object"}
+    )
+
+    raw_text = response.choices[0].message.content
+
+    if not raw_text:
+        raise ValueError("Model returned empty response")
+
+    parsed = extract_json_from_response(raw_text)
+
+    # Validate overall_health
+    if parsed.get("overall_health") not in [
+        "healthy", "warning", "critical"
+    ]:
+        parsed["overall_health"] = "warning"
+        parsed["health_label"] = "Attention Needed"
+
+    # Ensure bottlenecks is a list
+    if not isinstance(parsed.get("bottlenecks"), list):
+        parsed["bottlenecks"] = []
+
+    # Validate each bottleneck severity
+    for b in parsed["bottlenecks"]:
+        if b.get("severity") not in ["low", "medium", "high"]:
+            b["severity"] = "medium"
+        if not isinstance(b.get("affected_count"), (int, float)):
+            b["affected_count"] = 0
+        if not isinstance(b.get("affected_value"), (int, float)):
+            b["affected_value"] = 0
+
+    # Ensure quick_wins is a list
+    if not isinstance(parsed.get("quick_wins"), list):
+        parsed["quick_wins"] = []
+
+    # Cap quick wins to 3
+    parsed["quick_wins"] = parsed["quick_wins"][:3]
+
+    # Ensure summary_stats exists
+    if not isinstance(parsed.get("summary_stats"), dict):
+        parsed["summary_stats"] = {
+            "total_stuck": 0,
+            "total_stuck_value": 0,
+            "most_congested_stage": "None",
+            "oldest_pending_days": 0
+        }
+
+    return parsed
